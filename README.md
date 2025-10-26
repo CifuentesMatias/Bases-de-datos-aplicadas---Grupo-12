@@ -1,9 +1,9 @@
 # Bases-de-datos-aplicadas---Grupo-12
 
 Integrantes:
-- Cifuentes Matias
+- Cifuentes Matias -> CifuentesMatias
 - Carballo Macarena
 - Bottarini Matias
-- Altamiranda Patricio
-- Rivero Matias
+- Altamiranda Patricio -> dejameponerunnombre
+- Rivero Matias -> ClearSyntax618
 - Hansen Federico
