@@ -34,3 +34,23 @@ Para la entrega final deberán enviar un archivo comprimido (en formato ZIP, no 
 ningún otro) con la totalidad del código fuente, incluyendo archivos de solución/proyecto. No
 incluyan otros archivos -tales como los que les proveemos para importar- ni backups. No
 exporten la totalidad de los archivos del repositorio.
+
+Pautas para la denominación y creación de la base de datos
+
+Cada grupo deberá generar una DB con un nombre distinto. Para ello usarán el nombre de la
+comisión y del grupo como denominador de la DB. Por ejemplo “Com3900G02”. El formato
+es ComXXXXGYY donde XXXX es el código de comisión e YY es el número de grupo con
+cero a la izquierda de ser necesario.
+Cada archivo SQL que contiene código fuente, sea de creación de componentes, carga o
+testing, debe comenzar su nombre con dos dígitos indicando el orden en que deben
+ejecutarse. Por ejemplo “00_CreacionSPImportacionCatalogo”. Estos archivos deben
+entregarse (como todos los scripts) dentro de un proyecto/solución. Todos deben estar en el
+repositorio git del grupo.
+También debe presentar un archivo .sql que consista en las invocaciones a los SP creados
+para generar la importación. Este archivo (que puede considerarse de testing) debe contener
+comentarios para indicar el orden de ejecución.
+Los scripts de testing también deben llamarse utilizando un número como prefijo de forma
+que su invocación en orden se haga evidente.
+Se recomienda revisar periódicamente el foro en Miel de la materia. En el mismo se informará
+el agregado de información, pautas o dudas respecto al TP
+
