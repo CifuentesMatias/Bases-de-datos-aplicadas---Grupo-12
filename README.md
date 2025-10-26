@@ -4,6 +4,6 @@ Integrantes ->Usuario:
 - Cifuentes Matias -> CifuentesMatias
 - Carballo Macarena
 - Bottarini Matias -> MatyBotta
-- Altamiranda Patricio -> dejameponerunnombre
+- Altamiranda Patricio -> alumnopaltamiranda
 - Rivero Matias -> ClearSyntax618
 - Hansen Federico
