@@ -60,3 +60,36 @@ create table Expensa(
 	constraint fk_detalle_expensa foreign key (id_detalle_expensa) references DetalleExpensa(id_detalle_expensa),
 	constraint fk_pagador_persona foreign key (id_pagador) references Persona(id)
 );
+
+create table Pago(
+	id_pago int identity(1,1),
+	fecha_pago date not null,
+	hora_pago time not null,
+	cbu_cvu int not null,
+	monto decimal(4,1) not null
+
+	constraint pk_idPago primary key(id_pago),
+);
+
+create table UnidadFuncional(
+	id_uf int identity(1,1),
+	idConsorcio int,
+	idPersona int,
+	departamento varchar(6) not null,
+	piso int not null,
+	m2 decimal(4,1) not null,
+
+	constraint pk_idUnidadFuncional primary key(id_uf),
+	constraint fk_idConsorcio foreign key (idConsorcio) references Consorcio(id_consorcio),
+	constraint fk_idPersona foreign key (idPersona) references Persona(id_persona),
+
+	constraint ck_departamento_valido check(
+		departamento NOT LIKE '%[0-9]%'
+		OR
+		departamento LIKE '[A-Z]'
+		OR 
+		departamento LIKE '[0-9][A-Z]'
+		OR 
+		departamento LIKE '[A-Z][0-9]'
+	)
+);
