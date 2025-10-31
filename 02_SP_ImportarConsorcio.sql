@@ -1,12 +1,3 @@
-------------------------------------------------------------------
--- MATERIA: BASES DE DATOS APLICADA
--- GRUPO: 12
--- TP INTEGRADOR - ENTREGA 5
--- SQL SERVER - IMPORTACIÓN DE CONSORCIOS
--- Integrantes:
--- Cifuentes Matiaw 45006748
-------------------------------------------------------------------
-
 USE Com5600_G12
 GO
 
