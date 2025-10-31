@@ -54,3 +54,11 @@ que su invocación en orden se haga evidente.
 Se recomienda revisar periódicamente el foro en Miel de la materia. En el mismo se informará
 el agregado de información, pautas o dudas respecto al TP
 
+EJEMPLO=
+Grupo12
+    00_CreacionDB.sql
+    01_TablasPrincipales.sql
+    02_SP_ImportarConsorcio.sql
+    03_SP_ImportarUF.sql
+    04_SP_ImportarPagos.sql
+    05_Test_Importaciones.sql
