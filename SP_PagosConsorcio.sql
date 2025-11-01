@@ -1,5 +1,6 @@
 use Com2900G12
 
+/*
 create procedure or alter sp_ImportarPagoConsorcio
 	@RutaArchivo nvarchar(500),
 	@NombreTabla nvarchar(500),
@@ -49,3 +50,4 @@ begin
 	end catch
 end
 go
+*/

@@ -6,10 +6,10 @@ use Com2900G12
 go
 
 /* CREACION DE SCHEMAS */
-create schema Personas;
+create schema Persons;
 go
 
-create schema Expensas;
+/* create schema Expensas;
 go
 
 create schema Edificio;
@@ -18,10 +18,12 @@ go
 create schema Gastos;
 go
 
-create schema Pagos;
+create schema Pagos; 
 go
+*/
+
 /* CREACION DE TABLAS */
-create table Personas.Persona(
+create table Persons.Persona(
 	id int identity(1,1),
 	dni int not null,
 	nombre nvarchar(30) not null,
@@ -31,16 +33,53 @@ create table Personas.Persona(
 	rol int not null,
 
 	constraint pk_persona primary key(id),
-	constraint fk_estado_persona foreign key (rol) references Personas.RolPersona(id_rolPersona),
+	constraint fk_estado_persona foreign key (rol) references Persons.RolPersona(id_rolPersona),
 	constraint uq_persona unique(dni),
 	constraint chk_telefono_persona check(telefono like '[0-9][0-9][0-9]-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]')
 );
+ALTER TABLE Persons.Persona
+DROP CONSTRAINT fk_estado_persona;
 
-create table Personas.RolPersona(
+ALTER TABLE Persons.Persona
+ADD cvu_cbu varchar(22) not null;
+
+ALTER TABLE Persons.Persona
+ADD constraint fk_estado_persona foreign key (rol) references Persons.RolPersona(id_rolPersona);
+
+ALTER TABLE Persons.Persona
+ALTER COLUMN rol tinyint NOT NULL;
+
+create table Persons.RolPersona(
 	id_rolPersona int identity(1,1) primary key,
 	descripcion varchar(30)
 );
 
+/* ALTER TABLE Persons.RolPersona
+DROP CONSTRAINT PK__RolPerso__B3357100D1A49BF9; */
+
+ALTER TABLE Persons.RolPersona
+ALTER COLUMN id_rolPersona tinyint;
+
+ALTER TABLE Persons.RolPersona
+ALTER COLUMN descripcion varchar(30) NOT NULL;
+
+ALTER TABLE Persons.RolPersona
+ADD CONSTRAINT PK_idRolPersona primary key(id_rolPersona);
+
+ALTER TABLE Persons.RolPersona
+ADD CONSTRAINT CK_RolPersona_Descripcion 
+CHECK (descripcion IN ('Inquilino', 'Propietario'));
+
+SET IDENTITY_INSERT Persons.RolPersona ON;
+insert into Persons.RolPersona(id_rolPersona, descripcion) values
+(0, 'Propietario'),
+(1, 'Inquilino');
+
+select * from Persons.RolPersona;
+
+
+
+/* 
 create table Edificio.Consorcio(
 	id_consorcio int identity(1,1),
 	id_administrador int,
@@ -176,3 +215,4 @@ create table Gastos.GastosExtraordinarios(
 	constraint pk_idGastoExt primary key(id_gasto_ext),
 	constraint fk_idExpensa foreign key(id_expensa) references Expensas.Expensa(id_expensa)
 );
+*/
