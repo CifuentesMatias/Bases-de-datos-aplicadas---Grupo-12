@@ -1,61 +1,68 @@
 use Com2900G12
 go;
 
-create or alter procedure Personas.BorrarPersona
-	@idPersona int
-AS
-BEGIN
-	SET NOCOUNT ON
+create or alter procedure sp_EliminarPersona
+	@IdPersona int
+as
+begin
+	set nocount on;
 
-	begin
-		try
-			begin transaction
-				if exists(select 1 from Personas.Persona where id_persona = @idPersona)
-				begin
-					if exists(select 1 from Edificio.Consorcio where id_administrador = @idPersona)
-					begin
-						delete from Edificio.Consorcio
-						where id_administrador = @idPersona
-					end
+	begin try
+		begin transaction;
 
-					if exists(select 1 from Expensas.Expensa where id_pagador = @idPersona)
-					begin
-						delete from Expensas.Expensa
-						where id_pagador = @idPersona
-					end	
-						
-					end
+		-- Verificar si existe esa persona
+		if not exists(select 1 from Personas.Persona where id_persona = @IdPersona)
+		begin
+			print('No existe el usuario buscado')
+			rollback transaction
+			return;
+		end
 
-					else
-					begin
-						print('No se pudo borrar a la persona deseada')
-						raiserror('No se pudo borrar a la persona deseada porque es administrador del consorcio', 16, 1)
-					end
-				end
-				else
-				begin
-					print('No existe la persona')
-					raiserror('No existe la persona')
-				end
-		end try
-		begin catch
-			if ERROR_SEVERITY() > 10
-			begin
-				raiserror('Ocurrio algo en el borrado de la persona', 16, 1)
-				if @@TRANCOUNT > 0
-				begin
-					rollback transaction
-				end
-				return;
-			end
-			if ERROR_SEVERITY() = 10
-			begin
-				commit transaction
-				return;
-			end
-		end catch
-		commit transaction
-	end
+		-- Verificar si la persona es administrador de algún consorcio
+		if exists(select 1 from Edificio.Consorcio where id_administrador = @IdPersona)
+		begin
+			print('No se puede eliminar porque la persona es administrador del consorcio')
+			rollback transaction;
+			return;
+		end
 
-END
-GO
+		-- Eliminar las expensas asociadas (relacion 1 a N)
+		delete from Expensas.Expensa where id_persona = @IdPersona;
+
+		-- Eliminar la persona
+		delete from Persona where Id = @IdPersona
+
+		commit transaction;
+
+		print('Persona eliminada existosamente')
+	end try
+	begin catch
+		if @@TRANCOUNT > 0
+			rollback transaction;
+
+		print('Error: ' + ERROR_MESSAGE());
+	end catch
+end
+go
+
+create or alter sp_EliminarConsorcio
+	@IdConsorcio
+as
+begin
+	set nocount on;
+	
+	begin try
+		begin transaction;
+
+		-- Verificar si existe consorcio
+		if not exists(select 1 from Edificio.Consorcio where id_consorcio = @IdConsorcio)
+		begin
+			print('No existe el consorcio buscado')
+			rollback transaction;
+			return;
+		end
+
+		-- Eliminar consorcio de la unidad funcional
+
+	end try
+end
