@@ -1,4 +1,4 @@
-USE Com5600_G12
+use Com2900G12
 GO
 
 CREATE OR ALTER PROCEDURE dbo.Importar_Consorcios
