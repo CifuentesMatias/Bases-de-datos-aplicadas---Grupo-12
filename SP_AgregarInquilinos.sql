@@ -50,13 +50,11 @@ begin
 			TABLOCK
 		);';
 
-		PRINT @SQL;
-
 		EXEC sp_executesql @SQL;
 
 
 		insert into Personas.Persona(nombre, apellido, dni, email, telefono, cvu_cbu, rol)
-		select nombre, apellido, dni, email, telefono, cvu_cbu, rol from #tmpPersona
+		select LOWER(TRIM(nombre)) as nombre, LOWER(TRIM(apellido)) as apellido, dni, LOWER(TRIM(email)) as email, telefono, cvu_cbu, rol from #tmpPersona
 
 		print 'Importación completada';
 	end try
