@@ -6,7 +6,8 @@ use Com2900G12
 go
 
 /* CREACION DE SCHEMAS */
-create schema Persons;
+create schema Personas
+authorization dbo;
 go
 
 /* create schema Expensas;
@@ -23,61 +24,52 @@ go
 */
 
 /* CREACION DE TABLAS */
-create table Persons.Persona(
+create table Personas.Persona(
 	id int identity(1,1),
-	dni int not null,
-	nombre nvarchar(30) not null,
+	dni varchar(8) not null check(dni not like '%[^0-9]%'),
+	nombre nvarchar(50) not null,
 	apellido nvarchar(50) not null,
-	email varchar(255) not null,
-	telefono char(12) not null,
-	rol int not null,
+	email varchar(200) not null,
+	cvu_cbu varchar(30) not null,
+	telefono varchar(10) not null,
+	rol bit not null,
 
 	constraint pk_persona primary key(id),
-	constraint fk_estado_persona foreign key (rol) references Persons.RolPersona(id_rolPersona),
+	constraint fk_estado_persona foreign key (rol) references Personas.RolPersona(id_rolPersona),
 	constraint uq_persona unique(dni),
-	constraint chk_telefono_persona check(telefono like '[0-9][0-9][0-9]-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]')
+	constraint chk_telefono_persona check(telefono like '[0-9][0-9][0-9]-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
+	constraint chk_cbu_persona check(cvu_cbu not like '%[^0-9]%')
 );
-ALTER TABLE Persons.Persona
-DROP CONSTRAINT fk_estado_persona;
 
-ALTER TABLE Persons.Persona
-ADD cvu_cbu varchar(22) not null;
+select * from Personas.Persona;
 
-ALTER TABLE Persons.Persona
-ADD constraint fk_estado_persona foreign key (rol) references Persons.RolPersona(id_rolPersona);
+alter table Personas.Persona
+add constraint chk_rol_persona
+check(rol in (0,1));
 
-ALTER TABLE Persons.Persona
-ALTER COLUMN rol tinyint NOT NULL;
+alter table Personas.Persona
+drop constraint uq_persona;
 
-create table Persons.RolPersona(
-	id_rolPersona int identity(1,1) primary key,
-	descripcion varchar(30)
+alter table Personas.Persona
+drop constraint chk_telefono_persona;
+
+create table Personas.RolPersona(
+	id_rolPersona bit check(id_rolPersona in (0,1)),
+	descripcion varchar(30) not null,
+
+	constraint pk_idRolPersona primary key(id_rolPersona),
+	constraint chk_RolPersona_Descripcion 
+		check (descripcion IN ('Inquilino', 'Propietario'))
 );
 
 /* ALTER TABLE Persons.RolPersona
 DROP CONSTRAINT PK__RolPerso__B3357100D1A49BF9; */
 
-ALTER TABLE Persons.RolPersona
-ALTER COLUMN id_rolPersona tinyint;
-
-ALTER TABLE Persons.RolPersona
-ALTER COLUMN descripcion varchar(30) NOT NULL;
-
-ALTER TABLE Persons.RolPersona
-ADD CONSTRAINT PK_idRolPersona primary key(id_rolPersona);
-
-ALTER TABLE Persons.RolPersona
-ADD CONSTRAINT CK_RolPersona_Descripcion 
-CHECK (descripcion IN ('Inquilino', 'Propietario'));
-
-SET IDENTITY_INSERT Persons.RolPersona ON;
-insert into Persons.RolPersona(id_rolPersona, descripcion) values
+insert into Personas.RolPersona(id_rolPersona, descripcion) values
 (0, 'Propietario'),
 (1, 'Inquilino');
 
-select * from Persons.RolPersona;
-
-
+select * from Personas.RolPersona;
 
 /* 
 create table Edificio.Consorcio(

@@ -1,6 +1,7 @@
 use Com2900G12
 go
 
+
 sp_configure 'show advanced options', 1;
 RECONFIGURE;
 GO
@@ -18,44 +19,52 @@ EXEC master.dbo.sp_MSset_oledb_prop
 
 GO
 
-create or alter procedure sp_ImportarInquilinos
+create or alter procedure Personas.sp_ImportarInquilinos
+	@RutaArchivo NVARCHAR(500)
 as
 begin
 	begin try
 		set nocount on;
 
-		create table #tmpPersona(
-			id int identity(1,1) primary key,
+		CREATE TABLE #tmpPersona (
 			nombre varchar(50) not null,
 			apellido varchar(50) not null,
-			dni int check(dni like '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
-			email varchar(255) not null,
-			telefono varchar(12) check(telefono like '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
-			cvu_cbu varchar(22) CHECK (LEN(cvu_cbu) = 22 AND cvu_cbu NOT LIKE '%[^0-9]%'),
-			rol tinyint check(rol in (0,1)),
+			dni varchar(8) not null check(dni not like '%[^0-9]%'),
+			email varchar(200) not null,
+			telefono varchar(10) not null check(telefono like '[0-9][0-9][0-9]-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
+			cvu_cbu varchar(30) not null check(cvu_cbu not like '%[^0-9]%'), 
+			rol bit not null
 		);
 
-		bulk insert #tmpPersona
-		from 'C:\\Program Files\Microsoft SQL Server\MSSQL16.SQLEXPRESS\MSSQL\DATA\consorcios\Inquilino-propietarios-datos.csv'
-		with (
-			FIELDTERMINATOR = ';', 
-			ROWTERMINATOR = '\r', 
+
+		-- Cargar archivo CSV usando BULK INSERT dinámico
+		DECLARE @SQL NVARCHAR(MAX);
+
+		SET @SQL = 
+		N'BULK INSERT #tmpPersona
+		FROM '''+@RutaArchivo+'''
+		WITH (
 			FIRSTROW = 2,
-			CODEPAGE = '65001'  -- UTF-8, útil si hay acentos
-		);
+			FIELDTERMINATOR = '';'',
+			ROWTERMINATOR = ''\n'',
+			TABLOCK
+		);';
+
+		PRINT @SQL;
+
+		EXEC sp_executesql @SQL;
 
 
-		-- insert into Persons.Persona(id, nombre, apellido, dni, email, telefono, cvu_cbu, rol)
-		select id, nombre, apellido, dni, email, telefono, cvu_cbu, rol from #tmpPersona
+		insert into Personas.Persona(nombre, apellido, dni, email, telefono, cvu_cbu, rol)
+		select nombre, apellido, dni, email, telefono, cvu_cbu, rol from #tmpPersona
 
 		print 'Importación completada';
 	end try
 	begin catch
-		print 'Error en la imporacion: ' + ERROR_MESSAGE();
+		print 'Error en la imporacion';
+		PRINT ERROR_MESSAGE();
 	end catch
 end
 go
 
-exec sp_ImportarInquilinos;
-EXEC xp_fileexist 'C:\\Program Files\Microsoft SQL Server\MSSQL16.SQLEXPRESS\MSSQL\DATA\consorcios\Inquilino-propietarios-datos.csv';
-SELECT @@VERSION;
+exec Personas.sp_ImportarInquilinos @RutaArchivo = 'C:\Program Files\Microsoft SQL Server\MSSQL16.SQLEXPRESS\MSSQL\DATA\consorcios\Inquilino-propietarios-datos.csv';
