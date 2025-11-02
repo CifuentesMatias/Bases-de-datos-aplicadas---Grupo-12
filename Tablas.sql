@@ -10,6 +10,10 @@ create schema Personas
 authorization dbo;
 go
 
+create schema Pagos
+authorization dbo; 
+go
+
 /* create schema Expensas;
 go
 
@@ -19,8 +23,7 @@ go
 create schema Gastos;
 go
 
-create schema Pagos; 
-go
+
 */
 
 /* CREACION DE TABLAS */
@@ -36,7 +39,7 @@ create table Personas.Persona(
 
 	constraint pk_persona primary key(id),
 	constraint fk_estado_persona foreign key (rol) references Personas.RolPersona(id_rolPersona),
-	constraint uq_persona unique(dni),
+	-- constraint uq_persona unique(dni),
 	constraint chk_telefono_persona check(telefono like '[0-9][0-9][0-9]-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
 	constraint chk_cbu_persona check(cvu_cbu not like '%[^0-9]%')
 );
@@ -52,6 +55,9 @@ drop constraint uq_persona;
 
 alter table Personas.Persona
 drop constraint chk_telefono_persona;
+
+alter table Personas.Persona
+add constraint uq_cvuCbuPersona unique(cvu_cbu);
 
 create table Personas.RolPersona(
 	id_rolPersona bit check(id_rolPersona in (0,1)),
@@ -70,6 +76,17 @@ insert into Personas.RolPersona(id_rolPersona, descripcion) values
 (1, 'Inquilino');
 
 select * from Personas.RolPersona;
+
+create table Pagos.Pago(
+	id_pago int,
+	fecha_pago date not null,
+	cbu_cvu varchar(30) not null,
+	monto decimal(10,3) not null
+
+	constraint pk_idPago primary key(id_pago),
+	constraint chk_cbu_persona check(cbu_cvu not like '%[^0-9]%'),
+	constraint fk_cvuCbuPersona foreign key(cbu_cvu) references Personas.Persona(cvu_cbu)
+);
 
 /* 
 create table Edificio.Consorcio(
@@ -108,15 +125,7 @@ create table Expensas.Expensa(
 	constraint fk_pagador_persona foreign key (id_pagador) references Personas.Persona(id)
 );
 
-create table Pagos.Pago(
-	id_pago int identity(1,1),
-	fecha_pago date not null,
-	hora_pago time not null,
-	cbu_cvu int not null,
-	monto decimal(10,1) not null
 
-	constraint pk_idPago primary key(id_pago),
-);
 
 create table Edificio.UnidadFuncional(
 	id_uf int identity(1,1),
