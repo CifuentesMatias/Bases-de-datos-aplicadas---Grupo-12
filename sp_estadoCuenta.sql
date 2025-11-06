@@ -1,5 +1,9 @@
--- TIP: podriamos poner TOP 1 en cada DECLARE
-
+/** COMMENTS **
+	podriamos poner TOP 1 en cada DECLARE por seguridad
+	indices para Expensa(anio, mes)
+	podriamos precalcular nombre y apellido para persona_uf asi evitamos un join
+	podriamos precalcular historicos en una tabla de saldo_anterior y un trigger para pagos_recibios
+*/
 /** DESCRIP **
     calcula el estado de cuenta de cada uf, como se pide en el enunciado, por un solo consorcio.
     para varios consorcio se puede usar un sp wrapper que itere por todos los consorcios
