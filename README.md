@@ -2,7 +2,7 @@
 
 Integrantes ->Usuario:
 - Cifuentes Matias -> CifuentesMatias
-- Carballo Macarena
+- Carballo Macarena -> MacarenaCarballo
 - Bottarini Matias -> MatyBotta
 - Altamiranda Patricio -> alumnopaltamiranda
 - Rivero Matias -> ClearSyntax618
