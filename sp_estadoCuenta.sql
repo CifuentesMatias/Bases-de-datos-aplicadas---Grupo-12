@@ -11,6 +11,9 @@
 /** REQUIERE **
   fn_CANT_COCHERAS
   fn_CANT_BAULERAS
+  table unidad_funcional
+  table persona_uf
+  table persona
 */
 /** PARAMS **
   @anio            between(2000, 3000)  -
@@ -30,7 +33,7 @@ CREATE PROCEDURE sp_estadoCuenta(@anio INT,
                                  @precio_cochera NUMERIC(7,2),
                                  @precio_baulera NUMERIC(7,2)) AS
 BEGIN
-  SET NOCOUNT ON;
+  	SET NOCOUNT ON;
   
 	DECLARE @anio_anterior INT = @anio;
 	DECLARE @mes_anterior INT = @mes - 1;
@@ -54,10 +57,10 @@ BEGIN
 	DECLARE @total_gastos_ord NUMERIC(9,2) = (SELECT COALESCE(SUM(importe), 0) FROM detalle_expensa WHERE tipo_gasto = 'Gastos Ordinarios' AND id_expensa = @id_expensa_actual);
 	DECLARE @total_gastos_extr NUMERIC(9,2) = (SELECT COALESCE(SUM(importe), 0) FROM detalle_expensa WHERE tipo_gasto = 'Gastos Extraordinarios' AND id_expensa = @id_expensa_actual);
 
-
+	-- se usa para algo mas el porcentual?? se me hizo laguna mental
 	SELECT 
 		uf.id_uf as [Uf], 
-		uf.porc as [%],
+		uf.porc as [%], -- o sino (uf.porc + fn_M2TOTAL_COCHERAS(@id_consorcio, uf.uf_id) + fn_M2TOTAL_BAULERAS(@id_consorcio, uf.uf_id)) 
 		(CASE uf.piso WHEN 0 THEN 'PB' ELSE CAST(uf.piso as VARCHAR(2)) END) + '-' + uf.departamento as [Piso-Depto],
 		(p.nombre + ' ' + p.apellido) as [Propietario],
 		@saldo_anterior as [Saldo anterior],
@@ -65,10 +68,11 @@ BEGIN
 		@deuda as [Deuda],
 		@interes as [Interés por mora],
 		@total_gastos_ord as [expensas ordinarias],
-		(@precio_cochera * fn_CANT_COCHERAS(uf.uf_id)) as [Cocheras],
-		(@precio_baulera * fn_CANT_BAULERAS(uf.uf_id)) as [Bauleras],
+		(@precio_cochera * fn_CANT_COCHERAS(@id_consorcio, uf.uf_id)) as [Cocheras],
+		(@precio_baulera * fn_CANT_BAULERAS(@id_consorcio, uf.uf_id)) as [Bauleras],
 		@total_gastos_extr as [expensas extraordinarias],
-		(@deuda + @interes + @total_gastos_ord + [Cocheras] + [Bauleras] + @total_gastos_extr) as [Total a Pagar] 
+		(@deuda + @interes + @total_gastos_ord + [Cocheras] + [Bauleras] + @total_gastos_extr) as [Total a Pagar]
+		-- revisar linea anterior para ver si se peude hacer asi o usar CROSS APPLY
 	FROM unidad_funcional uf
 	JOIN persona_uf puf ON puf.id_uf = uf.id_uf
 	JOIN persona p ON p.id_persona = puf.id_persona
