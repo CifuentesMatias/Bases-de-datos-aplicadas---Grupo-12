@@ -1,6 +1,6 @@
 /** COMMENTS **
 	podriamos poner TOP 1 en cada DECLARE por seguridad
-	indices para Expensa(anio, mes)
+	indices para Expensa(anio, mes, consorcio)
 	podriamos precalcular nombre y apellido para persona_uf asi evitamos un join
 	podriamos precalcular historicos en una tabla de saldo_anterior y un trigger para pagos_recibios
 */
