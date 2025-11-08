@@ -1,3 +1,8 @@
+CREATE FUNCTION fn_CONSORCIO_ID(@nombre_consorcio NVARCHAR(50)) RETURNS INT AS
+BEGIN
+	RETURN (SELECT COALESCE(id_consorcio, 0) FROM consorcio WHERE nombre = @nombre_consorcio);
+END;
+
 /** COMMENTS **
 	se usa tecnica de enum como en C, para mapear una string a valor
 */
@@ -9,7 +14,7 @@
   table Adicionales
 */
 /** PARAMS **
-  @id_consorcio    gt(1)                -
+  @id_consorcio    gte(1)               -
   @id_uf           gte(1)               - 
 */
 
