@@ -33,7 +33,23 @@ CREATE PROCEDURE sp_estadoCuenta(@anio INT,
                                  @precio_cochera NUMERIC(7,2),
                                  @precio_baulera NUMERIC(7,2)) AS
 BEGIN
-  	SET NOCOUNT ON;
+  	IF @consorcio = 0 
+	BEGIN
+		RAISERROR('Ese id de consorcio no existe', 16, 1);
+		RETURN;
+	END;
+	IF @anio < 2000 OR @mes < 1 OR @mes > 12
+	BEGIN
+		RAISERROR('fecha invalida', 16, 2);
+		RETURN;
+	END;
+	IF @porc_venc1 < 0 OR @porc_venc2 < 0 OR @precio_cochera < 0 OR @precio_baulera < 0
+	BEGIN
+		RAISERROR('parametros invalidos', 16, 3);
+		RETURN;
+	END;
+	
+	SET NOCOUNT ON;
   
 	DECLARE @anio_anterior INT = @anio;
 	DECLARE @mes_anterior INT = @mes - 1;
