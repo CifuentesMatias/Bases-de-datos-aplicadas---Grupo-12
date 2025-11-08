@@ -43,8 +43,8 @@ BEGIN
 	    SET @anio_anterior = @anio - 1;
 	END;
 
-	DECLARE @id_expensa_actual INT = (SELECT id_expensa FROM Expensa WHERE anio = @anio AND mes = @mes);
-	DECLARE @id_expensa_anterior INT = (SELECT id_expensa FROM Expensa WHERE anio = @anio_anterior AND mes = @mes_anterior);
+	DECLARE @id_expensa_actual INT = (SELECT id_expensa FROM Expensa WHERE anio = @anio AND mes = @mes AND id_consorcio = @consorcio);
+	DECLARE @id_expensa_anterior INT = (SELECT id_expensa FROM Expensa WHERE anio = @anio_anterior AND mes = @mes_anterior AND id_consorcio = @consorcio);
 
 	DECLARE @saldo_anterior NUMERIC(9,2) = (SELECT COALESCE(SUM(importe), 0) FROM detalle_expensa WHERE id_expensa = @id_expensa_anterior);
 	DECLARE @pagos_recibidos NUMERIC(9,2) = (SELECT COALESCE(SUM(monto), 0) FROM pago WHERE id_consorcio = @id_consorcio AND id_expensa = @id_expensa_anterior);
