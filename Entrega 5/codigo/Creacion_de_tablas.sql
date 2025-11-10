@@ -160,3 +160,22 @@ CREATE TABLE Gasto_Extraordinario
 	CONSTRAINT GASTO_EXTRAORDINARIO_FK_EXPENSA FOREIGN KEY (id) REFERENCES Detalle_Expensa(id),
 	CONSTRAINT GASTO_EXTRAORDINARIO_FK_PROVEEDOR FOREIGN KEY (id_proveedor) REFERENCES Proveedor(id),
 );
+
+CREATE TABLE EstadoCuenta_UF
+(
+    id_cuenta       INT IDENTITY(1,1) PRIMARY KEY,
+    id_consorcio    INT NOT NULL,
+    id_uf           INT NOT NULL,
+    ingresos		DECIMAL(18,2) NOT NULL,
+    ExpensasOrdinarias      DECIMAL(18,2) NOT NULL,
+    ExpensasExtraordinarias DECIMAL(18,2) NOT NULL,
+    saldo_anterior DECIMAL(18,2) NOT NULL,
+    saldo_cierre DECIMAL(18,2) NOT NULL,
+    anio            INT NOT NULL,
+    mes             INT NOT NULL,
+    fecha_creacion DATE DEFAULT GETDATE(),
+
+
+	constraint FK_idConsorcio foreign key(id_consorcio) references Consorcio(id),
+	constraint FK_idUnidadFuncional foreign key(id_uf) references Unidad_Funcional(id)
+);
