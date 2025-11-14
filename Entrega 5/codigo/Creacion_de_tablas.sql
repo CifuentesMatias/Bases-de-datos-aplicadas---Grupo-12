@@ -12,7 +12,7 @@ go
 -- Creacion de usuarios
 	-- Administrador general del sistema.
 	/* Es el que crea y elimina registros de consorcios, unidades, personas.
-	Ejecuta scripts críticos.
+	Ejecuta scripts crÃ­ticos.
 	Asigna permisos a otros usuarios. 
 	*/
 IF NOT EXISTS (SELECT * FROM sys.server_principals WHERE name = 'admin_expensas')
@@ -75,13 +75,13 @@ CREATE TABLE Prop_Inq -- REVEER
 
 CREATE TABLE Personas.Persona
 (
-	id				INT IDENTITY(1,1),
-	dni				INT NOT NULL,
-	nombre			NVARCHAR(25) NULL,
-	apellido		NVARCHAR(25) NULL,
-	email			VARCHAR(255) NULL,	-- segun estandar email es hasta 255
-	telefono		char(12) NULL,		-- 123-12345678
-	cbu_cvu			char(22) not null,
+	id				INT IDENTITY(1,1), -- CIFRAR
+	dni				INT NOT NULL, -- CIFRAR
+	nombre			NVARCHAR(25) NULL, -- CIFRAR
+	apellido		NVARCHAR(25) NULL, -- CIFRAR
+	email			VARCHAR(255) NULL,	-- segun estandar email es hasta 255 -- CIFRAR
+	telefono		char(12) NULL,		-- 123-12345678 -- CIFRAR
+	cbu_cvu			char(22) not null, -- CIFRAR
 	-- Prop_Inq		TINYINT,
 
 	CONSTRAINT PERSONA_PK PRIMARY KEY (id, cbu_cvu),
@@ -190,8 +190,8 @@ CREATE TABLE Expensa.Detalle_Expensa
 CREATE TABLE Pago.Pago
 (
 	id				INT IDENTITY(1,1),
-	cbu_cvu			char(22) not null,
-	fecha_pago		DATE not null,
+	cbu_cvu			char(22) not null, -- CIFRAR
+	fecha_pago		DATE not null, 
 	monto			NUMERIC(9,2) NOT NULL,
 	-- id_gasto		INT,
 	-- CONSTRAINT PAGO_GASTO FOREIGN KEY (id_gasto) REFERENCES Detalle_Expensa(id),
