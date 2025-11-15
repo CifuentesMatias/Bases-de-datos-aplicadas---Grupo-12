@@ -1,0 +1,51 @@
+USE Com29002612
+GO
+
+GRANT SELECT, INSERT, UPDATE ON dbo.UF TO administrativo_general;
+GRANT SELECT, INSERT, UPDATE ON dbo.Persona_UF TO administrativo_general;
+GRANT SELECT, INSERT, UPDATE ON dbo.Persona TO administrativo_general;
+GRANT SELECT ON dbo.Consorcio TO administrativo_general;
+GRANT SELECT ON dbo.Tipo_adicional TO administrativo_general;
+GRANT SELECT ON dbo.Adicionales TO administrativo_general;
+
+GRANT EXECUTE ON SCHEMA::reportes TO administrativo_general;
+GRANT SELECT ON dbo.Estado_cuenta TO administrativo_general;
+GRANT SELECT ON dbo.Estado_financiero TO administrativo_general;
+GRANT SELECT ON dbo.Expensa TO administrativo_general;
+GRANT SELECT ON dbo.Detalle_Expensa TO administrativo_general;
+GRANT SELECT ON dbo.Gasto_Ordinario TO administrativo_general;
+GRANT SELECT ON dbo.Gasto_Extraordinario TO administrativo_general;
+GO
+
+GRANT SELECT, INSERT, UPDATE ON dbo.Pago TO administrativo_bancario;
+GRANT EXECUTE ON dbo.SP_ImportarPagosBancarios TO administrativo_bancario;
+GRANT EXECUTE ON dbo.SP_AsociarPago TO administrativo_bancario;
+GRANT SELECT ON dbo.Estado_cuenta TO administrativo_bancario;
+GRANT SELECT ON dbo.Persona_UF TO administrativo_bancario;
+GRANT SELECT ON dbo.UF TO administrativo_bancario;
+
+GRANT EXECUTE ON SCHEMA::reportes TO administrativo_bancario;
+GRANT SELECT ON dbo.Estado_financiero TO administrativo_bancario;
+GRANT SELECT ON dbo.Expensa TO administrativo_bancario;
+GRANT SELECT ON dbo.Detalle_Expensa TO administrativo_bancario;
+GO
+
+GRANT SELECT, INSERT, UPDATE ON dbo.UF TO administrativo_operativo;
+GRANT SELECT, INSERT, UPDATE ON dbo.Persona_UF TO administrativo_operativo;
+GRANT SELECT, INSERT, UPDATE ON dbo.Persona TO administrativo_operativo;
+GRANT SELECT ON dbo.Consorcio TO administrativo_operativo;
+GRANT SELECT ON dbo.Tipo_adicional TO administrativo_operativo;
+GRANT SELECT ON dbo.Adicionales TO administrativo_operativo;
+
+GRANT EXECUTE ON SCHEMA::reportes TO administrativo_operativo;
+GRANT SELECT ON dbo.Estado_cuenta TO administrativo_operativo;
+GRANT SELECT ON dbo.Estado_financiero TO administrativo_operativo;
+GRANT SELECT ON dbo.Expensa TO administrativo_operativo;
+GRANT SELECT ON dbo.Detalle_Expensa TO administrativo_operativo;
+GRANT SELECT ON dbo.Gasto_Ordinario TO administrativo_operativo;
+GRANT SELECT ON dbo.Gasto_Extraordinario TO administrativo_operativo;
+GO
+
+GRANT EXECUTE ON SCHEMA::reportes TO sistemas;
+GRANT SELECT ON SCHEMA::dbo TO sistemas; -- Acceso de lectura a todas las tablas para reportes
+GO
