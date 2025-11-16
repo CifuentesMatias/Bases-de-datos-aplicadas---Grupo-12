@@ -194,8 +194,10 @@ BEGIN
             cbu_cvu CHAR(22) NULL,
             monto DECIMAL(12,2) NULL,
             id_exp INT NULL,
-            CONSTRAINT FK_PAGO_CBU FOREIGN KEY (cbu_cvu) REFERENCES Persona_UF(cbu_cvu),
-            CONSTRAINT FK_PAGO_EXP FOREIGN KEY (id_exp) REFERENCES Expensa(id)
+            CONSTRAINT FK_PAGO_EXP FOREIGN KEY (id_exp) REFERENCES Expensa(id),
+            CONSTRAINT PAGO_CHK_CBU CHECK 
+            (cbu_cvu LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
+            
         );
         
         COMMIT TRANSACTION;
