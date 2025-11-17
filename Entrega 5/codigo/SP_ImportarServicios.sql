@@ -1,14 +1,13 @@
-ï»¿USE sistema_gestion;
-GO
+
 
 -- Eliminar SP si existe
-IF OBJECT_ID('sp_importar_servicios_json', 'P') IS NOT NULL
-    DROP PROCEDURE sp_importar_servicios_json;
+IF OBJECT_ID('SP_ImportarServicios', 'P') IS NOT NULL
+    DROP PROCEDURE SP_ImportarServicios;
 GO
 
-CREATE PROCEDURE sp_importar_servicios_json
+CREATE PROCEDURE SP_ImportarServicios
     @json NVARCHAR(MAX),              -- JSON a importar
-    @anio INT = 2024,                 -- AÃ±o de las expensas (default: 2024)
+    @anio INT = 2024,                 -- Año de las expensas (default: 2024)
     @crearProveedores BIT = 1         -- Si crear proveedores que no existen
 AS
 BEGIN
@@ -82,7 +81,7 @@ BEGIN
             PRINT '';
             PRINT 'Debe crear estos consorcios manualmente antes de importar.';
             
-            RAISERROR('Existen consorcios no encontrados. CrÃ©elos antes de importar.', 16, 1);
+            RAISERROR('Existen consorcios no encontrados. Créelos antes de importar.', 16, 1);
             RETURN;
         END
         
@@ -107,7 +106,7 @@ BEGIN
         SELECT DISTINCT IdConsorcio, NombreConsorcio, 'Limpieza', 'Limpieza ' + NombreConsorcio 
         FROM #TempServicios WHERE Limpieza > 0
         UNION
-        SELECT DISTINCT IdConsorcio, NombreConsorcio, 'Administracion', 'AdministraciÃ³n ' + NombreConsorcio 
+        SELECT DISTINCT IdConsorcio, NombreConsorcio, 'Administracion', 'Administración ' + NombreConsorcio 
         FROM #TempServicios WHERE Administracion > 0
         UNION
         SELECT DISTINCT IdConsorcio, NombreConsorcio, 'Seguro', 'Seguros ' + NombreConsorcio 
@@ -136,7 +135,7 @@ BEGIN
                 OR (pn.TipoProveedor = 'General' AND p.razon_social LIKE '%General%')
             );
         
-        -- Crear proveedores faltantes si estÃ¡ habilitado
+        -- Crear proveedores faltantes si está habilitado
         IF @crearProveedores = 1
         BEGIN
             INSERT INTO Proveedor (razon_social, id_consorcio)
@@ -146,9 +145,9 @@ BEGIN
             
             DECLARE @proveedoresCreados INT = @@ROWCOUNT;
             IF @proveedoresCreados > 0
-                PRINT 'âœ“ Proveedores creados: ' + CAST(@proveedoresCreados AS VARCHAR(10));
+                PRINT '? Proveedores creados: ' + CAST(@proveedoresCreados AS VARCHAR(10));
             
-            -- Actualizar IDs de proveedores reciÃ©n creados
+            -- Actualizar IDs de proveedores recién creados
             UPDATE pn
             SET pn.IdProveedor = p.id
             FROM #ProveedoresNecesarios pn
@@ -250,7 +249,7 @@ BEGIN
         
         UNION ALL
         
-        -- ADMINISTRACIÃ“N
+        -- ADMINISTRACIÓN
         SELECT 
             t.IdExpensa,
             DATEFROMPARTS(t.Anio, t.MesNumero, 3),
@@ -278,7 +277,7 @@ BEGIN
         
         UNION ALL
         
-        -- SERVICIOS PÃšBLICOS - LUZ
+        -- SERVICIOS PÚBLICOS - LUZ
         SELECT 
             t.IdExpensa,
             DATEFROMPARTS(t.Anio, t.MesNumero, 8),
@@ -292,7 +291,7 @@ BEGIN
         
         UNION ALL
         
-        -- SERVICIOS PÃšBLICOS - AGUA
+        -- SERVICIOS PÚBLICOS - AGUA
         SELECT 
             t.IdExpensa,
             DATEFROMPARTS(t.Anio, t.MesNumero, 10),
@@ -318,7 +317,7 @@ BEGIN
         INNER JOIN #ProveedoresNecesarios pn ON t.IdConsorcio = pn.IdConsorcio AND pn.TipoProveedor = 'General'
         WHERE t.IdExpensa IS NOT NULL AND t.GastosGenerales > 0;
         
-        PRINT 'âœ“ Detalles de expensa insertados: ' + CAST(@@ROWCOUNT AS VARCHAR(10));
+        PRINT '? Detalles de expensa insertados: ' + CAST(@@ROWCOUNT AS VARCHAR(10));
         
         INSERT INTO Gasto_Ordinario (id_gasto, nro_factura)
         SELECT 
@@ -342,10 +341,10 @@ BEGIN
         IF @@TRANCOUNT > 0
             ROLLBACK TRANSACTION;
         
-        PRINT 'ERROR EN LA IMPORTACIÃ“N:';
+        PRINT 'ERROR EN LA IMPORTACIÓN:';
         PRINT 'Mensaje: ' + ERROR_MESSAGE();
-        PRINT 'LÃ­nea: ' + CAST(ERROR_LINE() AS VARCHAR(10));
-        PRINT 'Procedimiento: ' + ISNULL(ERROR_PROCEDURE(), 'sp_importar_servicios_json');
+        PRINT 'Línea: ' + CAST(ERROR_LINE() AS VARCHAR(10));
+        PRINT 'Procedimiento: ' + ISNULL(ERROR_PROCEDURE(), 'SP_ImportarServicios');
         
         THROW;
     END CATCH
@@ -356,7 +355,7 @@ DECLARE @jsonData NVARCHAR(MAX);
 SELECT @jsonData = BulkColumn
 FROM OPENROWSET(BULK 'C:\ruta\Servicios.Servicios.json', SINGLE_CLOB) AS j;
 
-EXEC sp_importar_servicios_json 
+EXEC SP_ImportarServicios 
     @json = @jsonData,
     @anio = 2024,
     @crearProveedores = 1;
