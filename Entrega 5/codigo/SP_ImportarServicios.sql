@@ -142,11 +142,7 @@ BEGIN
             SELECT pn.RazonSocial, pn.IdConsorcio
             FROM #ProveedoresNecesarios pn
             WHERE pn.IdProveedor IS NULL;
-            
-            DECLARE @proveedoresCreados INT = @@ROWCOUNT;
-            IF @proveedoresCreados > 0
-                PRINT '? Proveedores creados: ' + CAST(@proveedoresCreados AS VARCHAR(10));
-            
+
             -- Actualizar IDs de proveedores recién creados
             UPDATE pn
             SET pn.IdProveedor = p.id
@@ -316,8 +312,6 @@ BEGIN
         FROM #TempServicios t
         INNER JOIN #ProveedoresNecesarios pn ON t.IdConsorcio = pn.IdConsorcio AND pn.TipoProveedor = 'General'
         WHERE t.IdExpensa IS NOT NULL AND t.GastosGenerales > 0;
-        
-        PRINT '? Detalles de expensa insertados: ' + CAST(@@ROWCOUNT AS VARCHAR(10));
         
         INSERT INTO Gasto_Ordinario (id_gasto, nro_factura)
         SELECT 
