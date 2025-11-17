@@ -31,17 +31,18 @@ BEGIN
         );
         
         DECLARE @sql NVARCHAR(MAX);
-        SET @sql = '
+        SET @sql = N'
             BULK INSERT #UF_RAW
             FROM ''' + @RutaArchivo + '''
             WITH (
                 FIRSTROW = 2,
                 FIELDTERMINATOR = ''\t'',
                 ROWTERMINATOR = ''\n'',
-                CODEPAGE = ''65001''
+                CODEPAGE = ''65001'',
+                TABLOCK
             );
         ';
-        EXEC (@sql);
+       EXEC sp_executesql @sql;
         
         -- Insertar UF
         INSERT INTO UF (id_consorcio, id, m2, porcentaje, depto, piso)
@@ -95,8 +96,7 @@ END
 GO
 
 --Esto en el main
-EXEC SP_ImportarUFDesdeArchivo
-    @RutaArchivo = 'C:\Bases-de-datos-aplicadas---Grupo-12\UFporconsorcio.txt';
+EXEC SP_ImportarUFDesdeArchivo @RutaArchivo = 'C:\Program Files\Microsoft SQL Server\MSSQL16.SQLEXPRESS\MSSQL\DATA\consorcios\UFporconsorcio.txt';
 
 
 --select * from Consorcio;

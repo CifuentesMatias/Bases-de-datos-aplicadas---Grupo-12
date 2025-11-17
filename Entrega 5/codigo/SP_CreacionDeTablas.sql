@@ -17,7 +17,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'SCH_Pago')
+    /* IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'SCH_Pago')
     BEGIN
         PRINT 'El schema SCH_Pago no existe. Creándolo...';
         EXEC dbo.GenerarSchemas @NombreSchema = 'SCH_Pago';
@@ -52,8 +52,8 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'SCH_Gasto')
     BEGIN
         PRINT 'El schema SCH_Gasto no existe. Creándolo...';
-        EXEC dbo.GenerarSchemas @NombreSchema = 'SCH_Gasto';
-    END
+        EXEC dbo.GenerarSchemas @NombreSchema = 'SCH_Gasto'; 
+    END */
 
 
     BEGIN TRY
@@ -94,9 +94,10 @@ BEGIN
             CONSTRAINT PERSONA_UK_DNI UNIQUE (dni),
             CONSTRAINT PERSONA_UK_CBU UNIQUE (cbu_cvu),
             CONSTRAINT PERSONA_CHK_TELEFONO CHECK (telefono 
-                LIKE '[0-9][0-9][0-9]-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]')
+                LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]')
         );
         CREATE INDEX idx_persona_cbu_cvu ON Persona(cbu_cvu);
+
 
         CREATE TABLE Tipo_relacion (
             id BIT PRIMARY KEY,
@@ -273,5 +274,7 @@ BEGIN
     END CATCH
 END;
 GO
+
+exec SP_CrearTablasYSchemas
 
 GO

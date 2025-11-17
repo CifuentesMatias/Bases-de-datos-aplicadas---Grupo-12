@@ -8,7 +8,7 @@ go
 --------------------------------------------------------
 
 -------- IMPORTACION DE PERSONAS (inquilino-propietarios-datos.csv) --------
-create or alter procedure dbo.SP_ImportarInquilinosXX
+create or alter procedure SP_ImportarInquilinosXX
 	@RutaArchivo NVARCHAR(500)
 as
 begin
@@ -21,7 +21,7 @@ begin
 			dni varchar(8) not null check(dni not like '%[^0-9]%'),
 			email varchar(200) not null,
 			telefono varchar(10) not null check(telefono like '[0-9][0-9][0-9]-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
-			cvu_cbu varchar(30) not null check(cvu_cbu not like '%[^0-9]%'), 
+			cvu_cbu varchar(22) not null check(cvu_cbu not like '%[^0-9]%'), 
 		);
 
 
@@ -41,7 +41,7 @@ begin
 		EXEC sp_executesql @SQL;
 
 
-		insert into Persona(dni, nombre, apellido, email, telefono, cbu_cvu)
+		insert into dbo.Persona(dni, nombre, apellido, email, telefono, cbu_cvu)
 		select dni, LOWER(TRIM(nombre)) as nombre, LOWER(TRIM(apellido)) as apellido, LOWER(TRIM(email)) as email, telefono, cvu_cbu from #tmpPersona
 
 		print 'Importación completada';

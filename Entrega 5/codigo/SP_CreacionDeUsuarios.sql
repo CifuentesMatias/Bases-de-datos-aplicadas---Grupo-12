@@ -12,7 +12,7 @@ CREATE OR ALTER PROCEDURE dbo.SP_CrearUsuarioConRol
     @NombreUsuario NVARCHAR(128),
     @Password NVARCHAR(128),
     @TipoRol NVARCHAR(50),
-    @Schema NVARCHAR(128)
+    @Schema NVARCHAR(128) = 'dbo'
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -28,9 +28,9 @@ BEGIN
             RETURN;
         END
         
-        IF @Password IS NULL OR LEN(@Password) < 8
+        IF @Password IS NULL OR LEN(@Password) < 6
         BEGIN
-            RAISERROR('La contraseña debe tener al menos 8 caracteres', 16, 1);
+            RAISERROR('La contraseña debe tener al menos 6 caracteres', 16, 1);
             RETURN;
         END
         
@@ -121,21 +121,21 @@ BEGIN
     PRINT '';
     
     -- Crear Administrador
-    EXEC dbo.CrearUsuarioConRol 
+    EXEC dbo.SP_CrearUsuarioConRol 
         @NombreUsuario = 'admin_expensas',
         @Password = '124Admin!',
         @TipoRol = 'ADMIN';
     PRINT '';
     
     -- Crear Tesorero
-    EXEC dbo.CrearUsuarioConRol 
+    EXEC dbo.SP_CrearUsuarioConRol 
         @NombreUsuario = 'tesorero',
-        @Password = 'Teso!',
+        @Password = 'Teso!124',
         @TipoRol = 'TESORERO';
     PRINT '';
     
     -- Crear Usuario de Consulta
-    EXEC dbo.CrearUsuarioConRol 
+    EXEC dbo.SP_CrearUsuarioConRol 
         @NombreUsuario = 'viewer',
         @Password = 'Consorcio2025!',
         @TipoRol = 'CONSULTA';
@@ -147,6 +147,7 @@ BEGIN
 END;
 GO
 
+exec dbo.SP_CrearUsuariosDefault;
 
 -- Eliminar usuarios
 CREATE OR ALTER PROCEDURE dbo.SP_EliminarUsuario

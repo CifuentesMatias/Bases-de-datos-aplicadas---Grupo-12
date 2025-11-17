@@ -1,4 +1,9 @@
+IF DB_ID('Com2900G12') IS NULL
+    CREATE DATABASE Com2900G12 COLLATE Latin1_General_CI_AS;
+GO
 
+USE Com2900G12;
+GO
 
 -- Eliminar SP si existe
 IF OBJECT_ID('SP_ImportarServicios', 'P') IS NOT NULL
@@ -343,11 +348,11 @@ BEGIN
         THROW;
     END CATCH
 END
-GO
+GO;
 
 DECLARE @jsonData NVARCHAR(MAX);
 SELECT @jsonData = BulkColumn
-FROM OPENROWSET(BULK 'C:\ruta\Servicios.Servicios.json', SINGLE_CLOB) AS j;
+FROM OPENROWSET(BULK 'C:\Program Files\Microsoft SQL Server\MSSQL16.SQLEXPRESS\MSSQL\consorcios\Servicios.Servicios.json', SINGLE_CLOB) AS j;
 
 EXEC SP_ImportarServicios 
     @json = @jsonData,

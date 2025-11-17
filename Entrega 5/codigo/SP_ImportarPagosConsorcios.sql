@@ -5,6 +5,7 @@ go
 use Com2900G12
 go
 
+
 --------------------------------------------------------
 
 -------- IMPORTACION DE PAGOS (pagos_consorcios.csv) --------
@@ -14,6 +15,8 @@ as
 begin
 	begin try
 		set nocount on;
+
+        SET IDENTITY_INSERT Pago ON;
 
         -- Tabla temporal para recibir datos en crudo (todo como VARCHAR)
         CREATE TABLE #tmpPagoRaw(
@@ -64,6 +67,5 @@ begin
 		PRINT ERROR_MESSAGE();
 	end catch
 end
-
 
 exec SP_ImportarPagosConsorcios @RutaArchivo = 'C:\Program Files\Microsoft SQL Server\MSSQL16.SQLEXPRESS\MSSQL\DATA\consorcios\pagos_consorcios.csv';
