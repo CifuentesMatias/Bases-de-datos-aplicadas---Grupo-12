@@ -8,7 +8,7 @@ go
 --------------------------------------------------------
 
 -- Crear usuario con rol
-CREATE OR ALTER PROCEDURE dbo.CrearUsuarioConRol
+CREATE OR ALTER PROCEDURE dbo.SP_CrearUsuarioConRol
     @NombreUsuario NVARCHAR(128),
     @Password NVARCHAR(128),
     @TipoRol NVARCHAR(50),
@@ -110,7 +110,7 @@ END;
 GO
 
 -- Llamar al SP CrearUsuarioConRol
-CREATE OR ALTER PROCEDURE dbo.CrearUsuariosDefault
+CREATE OR ALTER PROCEDURE dbo.SP_CrearUsuariosDefault
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -149,7 +149,7 @@ GO
 
 
 -- Eliminar usuarios
-CREATE OR ALTER PROCEDURE dbo.EliminarUsuario
+CREATE OR ALTER PROCEDURE dbo.SP_EliminarUsuario
     @NombreUsuario NVARCHAR(128),
     @EliminarLogin BIT = 1 -- Si es 1, elimina también el LOGIN
 AS

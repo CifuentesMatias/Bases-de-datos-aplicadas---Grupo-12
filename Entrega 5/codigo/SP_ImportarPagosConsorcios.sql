@@ -40,7 +40,7 @@ begin
         EXEC sp_executesql @SQL;
         
         -- Insertar limpiando y transformando los datos
-        INSERT INTO Pagos.Pago(id_pago, fecha_pago, cbu_cvu, monto)
+        INSERT INTO Pago(id_pago, fecha_pago, cbu_cvu, monto)
         SELECT 
             CAST(LTRIM(RTRIM(id)) AS INT),
             CONVERT(DATE, LTRIM(RTRIM(fecha_pago)), 103), -- Convierte el varchar a DATE en formato dd/mm/yyyy
@@ -52,7 +52,7 @@ begin
         FROM #tmpPagoRaw;
         
         -- Mostrar los datos finales
-        SELECT * FROM Pagos.Pago;
+        SELECT * FROM Pago;
         
         PRINT 'Importación completada';
         

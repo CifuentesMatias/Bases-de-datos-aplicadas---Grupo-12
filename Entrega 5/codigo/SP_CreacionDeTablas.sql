@@ -12,7 +12,7 @@ IF OBJECT_ID('SP_CrearTablasYSchemas', 'P') IS NOT NULL
     DROP PROCEDURE SP_CrearTablasYSchemas;
 GO
 
-CREATE PROCEDURE SP_CrearTablasYSchemas
+CREATE or ALTER PROCEDURE SP_CrearTablasYSchemas
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -253,8 +253,7 @@ BEGIN
             id_exp INT NULL,
             CONSTRAINT FK_PAGO_EXP FOREIGN KEY (id_exp) REFERENCES Expensa(id),
             CONSTRAINT PAGO_CHK_CBU CHECK 
-            (cbu_cvu LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
-            
+            (cbu_cvu LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]')            
         );
         
         COMMIT TRANSACTION;
