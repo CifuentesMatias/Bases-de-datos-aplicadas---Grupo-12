@@ -1,24 +1,14 @@
+if db_id('Com2900G12') is null
+	create database Com2900G12 collate Latin1_General_CI_AS;
+go
+
 use Com2900G12
 go
 
-sp_configure 'show advanced options', 1;
-RECONFIGURE;
-GO
-sp_configure 'Ad Hoc Distributed Queries', 1;
-RECONFIGURE;
-GO
+--------------------------------------------------------
 
-EXEC master.dbo.sp_MSset_oledb_prop 
-    N'Microsoft.ACE.OLEDB.16.0', 
-    N'AllowInProcess', 1;
-    
-EXEC master.dbo.sp_MSset_oledb_prop 
-    N'Microsoft.ACE.OLEDB.16.0', 
-    N'DynamicParameters', 1;
-
-GO
 -------- IMPORTACION DE PAGOS (pagos_consorcios.csv) --------
-create or alter procedure Pagos.sp_ImportarPagosConsorcios
+create or alter procedure SP_ImportarPagosConsorcios
 	@RutaArchivo nvarchar(500)
 as
 begin
@@ -76,4 +66,4 @@ begin
 end
 
 
-exec Pagos.sp_ImportarPagosConsorcios @RutaArchivo = 'C:\Program Files\Microsoft SQL Server\MSSQL16.SQLEXPRESS\MSSQL\DATA\consorcios\pagos_consorcios.csv';
+exec SP_ImportarPagosConsorcios @RutaArchivo = 'C:\Program Files\Microsoft SQL Server\MSSQL16.SQLEXPRESS\MSSQL\DATA\consorcios\pagos_consorcios.csv';

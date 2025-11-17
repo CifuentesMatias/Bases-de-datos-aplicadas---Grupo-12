@@ -1,26 +1,14 @@
+if db_id('Com2900G12') is null
+	create database Com2900G12 collate Latin1_General_CI_AS;
+go
+
 use Com2900G12
 go
 
-sp_configure 'show advanced options', 1;
-RECONFIGURE;
-GO
-sp_configure 'Ad Hoc Distributed Queries', 1;
-RECONFIGURE;
-GO
-
-EXEC master.dbo.sp_MSset_oledb_prop 
-    N'Microsoft.ACE.OLEDB.16.0', 
-    N'AllowInProcess', 1;
-    
-EXEC master.dbo.sp_MSset_oledb_prop 
-    N'Microsoft.ACE.OLEDB.16.0', 
-    N'DynamicParameters', 1;
-
-GO
-
+--------------------------------------------------------
 
 -------- IMPORTACION DE PERSONAS (inquilino-propietarios-datos.csv) --------
-create or alter procedure Personas.sp_ImportarInquilinos
+create or alter procedure SP_ImportarInquilinos
 	@RutaArchivo NVARCHAR(500)
 as
 begin
@@ -69,4 +57,4 @@ begin
 end
 go
 
-exec Personas.sp_ImportarInquilinos @RutaArchivo = 'C:\Program Files\Microsoft SQL Server\MSSQL16.SQLEXPRESS\MSSQL\DATA\consorcios\Inquilino-propietarios-datos.csv';
+exec SP_ImportarInquilinos @RutaArchivo = 'C:\Program Files\Microsoft SQL Server\MSSQL16.SQLEXPRESS\MSSQL\DATA\consorcios\Inquilino-propietarios-datos.csv';

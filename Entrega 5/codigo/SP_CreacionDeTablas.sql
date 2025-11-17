@@ -1,12 +1,61 @@
+if db_id('Com2900G12') is null
+	create database Com2900G12 collate Latin1_General_CI_AS;
+go
+
+use Com2900G12
+go
+
+--------------------------------------------------------
+
 -- Eliminar SP si existe
-IF OBJECT_ID('sp_crear_estructura_tablas', 'P') IS NOT NULL
-    DROP PROCEDURE sp_crear_estructura_tablas;
+IF OBJECT_ID('SP_CrearTablasYSchemas', 'P') IS NOT NULL
+    DROP PROCEDURE SP_CrearTablasYSchemas;
 GO
 
-CREATE PROCEDURE sp_crear_estructura_tablas
+CREATE PROCEDURE SP_CrearTablasYSchemas
 AS
 BEGIN
     SET NOCOUNT ON;
+
+    IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'SCH_Pago')
+    BEGIN
+        PRINT 'El schema SCH_Pago no existe. Creándolo...';
+        EXEC dbo.GenerarSchemas @NombreSchema = 'SCH_Pago';
+    END
+    
+    IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'SCH_Persona')
+    BEGIN
+        PRINT 'El schema SCH_Persona no existe. Creándolo...';
+        EXEC dbo.GenerarSchemas @NombreSchema = 'SCH_Persona';
+    END
+    
+    IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'SCH_Consorcio')
+    BEGIN
+        PRINT 'El schema SCH_Consorcio no existe. Creándolo...';
+        EXEC dbo.GenerarSchemas @NombreSchema = 'SCH_Consorcio';
+    END
+
+    IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'SCH_UF')
+    BEGIN
+        PRINT 'El schema SCH_UF no existe. Creándolo...';
+        EXEC dbo.GenerarSchemas @NombreSchema = 'SCH_UF';
+    END
+
+
+    IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'SCH_Expensa')
+    BEGIN
+        PRINT 'El schema SCH_Expensa no existe. Creándolo...';
+        EXEC dbo.GenerarSchemas @NombreSchema = 'SCH_Expensa';
+    END
+
+
+    IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'SCH_Gasto')
+    BEGIN
+        PRINT 'El schema SCH_Gasto no existe. Creándolo...';
+        EXEC dbo.GenerarSchemas @NombreSchema = 'SCH_Gasto';
+    END
+
+
     BEGIN TRY
         BEGIN TRANSACTION;
 

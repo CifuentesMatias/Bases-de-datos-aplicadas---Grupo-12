@@ -1,7 +1,13 @@
-use database Com2900G12
+if db_id('Com2900G12') is null
+	create database Com2900G12 collate Latin1_General_CI_AS;
 go
 
-CREATE PROCEDURE Importar_UF_Desde_Archivo
+use Com2900G12
+go
+
+--------------------------------------------------------
+
+CREATE or ALTER PROCEDURE SP_ImportarUFDesdeArchivo
     @RutaArchivo NVARCHAR(4000)
 AS
 BEGIN
@@ -57,7 +63,7 @@ GO
 
 
 --Esto en el main
-EXEC Importar_UF_Desde_Archivo
+EXEC SP_ImportarUFDesdeArchivo
     @RutaArchivo = 'C:\Bases-de-datos-aplicadas---Grupo-12\UFporconsorcio.txt';
 
 

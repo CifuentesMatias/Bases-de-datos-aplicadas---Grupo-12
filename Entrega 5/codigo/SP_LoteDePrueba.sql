@@ -1,8 +1,17 @@
-﻿IF OBJECT_ID('sp_cargar_datos_prueba', 'P') IS NOT NULL
-    DROP PROCEDURE sp_cargar_datos_prueba;
+﻿if db_id('Com2900G12') is null
+	create database Com2900G12 collate Latin1_General_CI_AS;
+go
+
+use Com2900G12
+go
+
+--------------------------------------------------------
+
+IF OBJECT_ID('SP_CargarDatosPrueba', 'P') IS NOT NULL
+    DROP PROCEDURE SP_CargarDatosPrueba;
 GO
 
-CREATE PROCEDURE sp_cargar_datos_prueba
+CREATE or ALTER PROCEDURE SP_CargarDatosPrueba
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -29,7 +38,7 @@ BEGIN
         INSERT INTO Tipo_relacion (id, descripcion) VALUES
         (0, 'Propietario'),
         (1, 'Inquilino');
-        PRINT '✓ Tipo_relacion cargado';
+        PRINT 'Tipo_relacion cargado';
 
         SET IDENTITY_INSERT Tipo_adicional ON;
         INSERT INTO Tipo_adicional (id, descripcion) VALUES
