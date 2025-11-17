@@ -8,7 +8,7 @@ go
 --------------------------------------------------------
 
 -------- IMPORTACION DE PERSONAS (inquilino-propietarios-datos.csv) --------
-create or alter procedure SP_ImportarInquilinos
+create or alter procedure dbo.SP_ImportarInquilinosXX
 	@RutaArchivo NVARCHAR(500)
 as
 begin
@@ -22,7 +22,6 @@ begin
 			email varchar(200) not null,
 			telefono varchar(10) not null check(telefono like '[0-9][0-9][0-9]-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
 			cvu_cbu varchar(30) not null check(cvu_cbu not like '%[^0-9]%'), 
-			rol bit not null
 		);
 
 
@@ -42,8 +41,8 @@ begin
 		EXEC sp_executesql @SQL;
 
 
-		insert into Personas.Persona(nombre, apellido, dni, email, telefono, cvu_cbu, rol)
-		select LOWER(TRIM(nombre)) as nombre, LOWER(TRIM(apellido)) as apellido, dni, LOWER(TRIM(email)) as email, telefono, cvu_cbu, rol from #tmpPersona
+		insert into Persona(dni, nombre, apellido, email, telefono, cbu_cvu)
+		select dni, LOWER(TRIM(nombre)) as nombre, LOWER(TRIM(apellido)) as apellido, LOWER(TRIM(email)) as email, telefono, cvu_cbu from #tmpPersona
 
 		print 'Importación completada';
 
@@ -57,4 +56,6 @@ begin
 end
 go
 
-exec SP_ImportarInquilinos @RutaArchivo = 'C:\Program Files\Microsoft SQL Server\MSSQL16.SQLEXPRESS\MSSQL\DATA\consorcios\Inquilino-propietarios-datos.csv';
+-- select * from Persona;
+
+exec SP_ImportarInquilinosXX @RutaArchivo = 'C:\Program Files\Microsoft SQL Server\MSSQL16.SQLEXPRESS\MSSQL\DATA\consorcios\Inquilino-propietarios-datos.csv';
