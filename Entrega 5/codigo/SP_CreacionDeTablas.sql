@@ -64,7 +64,6 @@ BEGIN
             razon_social VARCHAR(200) NOT NULL,
             domicilio VARCHAR(200) NULL,
             m2 DECIMAL(10,2) NULL,
-            email VARCHAR(100) NULL
         );
 
         CREATE TABLE UF (
@@ -147,7 +146,16 @@ BEGIN
 
         CREATE TABLE Proveedor (
             id INT IDENTITY(1,1) PRIMARY KEY,
-            razon_social VARCHAR(200) NOT NULL
+            razon_social VARCHAR(200) NOT NULL,
+            cuenta varchar(50),
+            );
+
+        CREATE TABLE Proveedor_Consorcio(
+        id_consorcio int,
+        id_proveedor INT,
+        CONSTRAINT PK_PROVEEDOR_CONSORCIO PRIMARY KEY (id_consorcio, id_proveedor),
+        CONSTRAINT FK_PROV_CONS FOREIGN KEY (id_consorcio) references Consorcio (id),
+        CONSTRAINT FK_CONS_PROV FOREIGN KEY (id_proveedor) references Proveedor (id)
         );
 
         CREATE TABLE Tipo_Gasto (
