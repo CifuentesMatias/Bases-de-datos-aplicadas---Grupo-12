@@ -1,5 +1,5 @@
 IF DB_ID('Com2900G12') IS NULL
-    CREATE DATABASE Com2900G12 COLLATE Latin1_General_CI_AS;
+    CREATE DATABASE Com2900G12 COLLATE Modern_Spanish_CI_AS;;
 GO
 
 USE Com2900G12;
@@ -42,8 +42,9 @@ BEGIN
                 TABLOCK
             );
         ';
-       EXEC sp_executesql @sql;
         
+        EXEC sp_executesql @sql;
+
         -- Insertar UF
         INSERT INTO UF (id_consorcio, id, m2, porcentaje, depto, piso)
         SELECT 
@@ -96,8 +97,8 @@ END
 GO
 
 --Esto en el main
-EXEC SP_ImportarUFDesdeArchivo @RutaArchivo = 'C:\Program Files\Microsoft SQL Server\MSSQL16.SQLEXPRESS\MSSQL\DATA\consorcios\UFporconsorcio.txt';
+EXEC SP_ImportarUFDesdeArchivo @RutaArchivo = 'C:\Temp\Consorcios\UF por consorcio.txt';
 
 
---select * from Consorcio;
+--select * from Adicionales;
 --select * from UF

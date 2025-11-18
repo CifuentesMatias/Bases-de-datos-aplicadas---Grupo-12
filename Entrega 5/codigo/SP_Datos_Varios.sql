@@ -1,5 +1,5 @@
 if db_id('Com2900G12') is null
-	create database Com2900G12 collate Latin1_General_CI_AS;
+	create database Com2900G12 collate Modern_Spanish_CI_AS;
 go
 
 use Com2900G12
@@ -11,8 +11,8 @@ GO
 
 CREATE or ALTER PROCEDURE SP_DatosVarios
     -- Parámetros para las rutas de los archivos
-    @RutaConsorcios NVARCHAR(255) = 'C:\Program Files\Microsoft SQL Server\MSSQL16.SQLEXPRESS\MSSQL\DATA\consorcios\datos varios.xlsx - Consorcios.csv',
-    @RutaProveedores NVARCHAR(255) = 'C:\Program Files\Microsoft SQL Server\MSSQL16.SQLEXPRESS\MSSQL\DATA\consorcios\datos varios.xlsx - Proveedores.csv'
+    @RutaConsorcios NVARCHAR(255) = 'C:\Temp\Consorcios\datos varios.xlsx - Consorcios.csv',
+    @RutaProveedores NVARCHAR(255) = 'C:\Temp\Consorcios\datos varios.xlsx - Proveedores.csv'
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -100,5 +100,7 @@ BEGIN
     
 END
 GO
+
+SELECT * FROM Proveedor
 
 exec dbo.SP_DatosVarios

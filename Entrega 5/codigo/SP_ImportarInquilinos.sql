@@ -1,5 +1,5 @@
 if db_id('Com2900G12') is null
-	create database Com2900G12 collate Latin1_General_CI_AS;
+	create database Com2900G12 collate Modern_Spanish_CI_AS;
 go
 
 use Com2900G12

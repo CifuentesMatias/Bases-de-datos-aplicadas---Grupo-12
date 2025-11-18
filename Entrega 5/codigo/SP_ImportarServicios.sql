@@ -1,5 +1,5 @@
 IF DB_ID('Com2900G12') IS NULL
-    CREATE DATABASE Com2900G12 COLLATE Latin1_General_CI_AS;
+    CREATE DATABASE Com2900G12 COLLATE Modern_Spanish_CI_AS;;
 GO
 
 USE Com2900G12;
@@ -43,16 +43,16 @@ BEGIN
         INSERT INTO #TempServicios (NombreConsorcio, Mes, Anio, Bancarios, Limpieza, Administracion, 
                                     Seguros, GastosGenerales, ServiciosAgua, ServiciosLuz)
         SELECT 
-            JSON_VALUE(value, '$."Nombre del consorcio"') AS NombreConsorcio,
+            JSON_VALUE(value, '$."Nombre del consorcio"') COLLATE Modern_Spanish_CI_AS AS NombreConsorcio,
             RTRIM(JSON_VALUE(value, '$.Mes')) AS Mes,
             @anio AS Anio,
             TRY_CAST(REPLACE(REPLACE(JSON_VALUE(value, '$.BANCARIOS'), '.', ''), ',', '.') AS DECIMAL(18,2)) AS Bancarios,
             TRY_CAST(REPLACE(REPLACE(JSON_VALUE(value, '$.LIMPIEZA'), '.', ''), ',', '.') AS DECIMAL(18,2)) AS Limpieza,
             TRY_CAST(REPLACE(REPLACE(JSON_VALUE(value, '$.ADMINISTRACION'), '.', ''), ',', '.') AS DECIMAL(18,2)) AS Administracion,
             TRY_CAST(REPLACE(REPLACE(JSON_VALUE(value, '$.SEGUROS'), '.', ''), ',', '.') AS DECIMAL(18,2)) AS Seguros,
-            TRY_CAST(REPLACE(REPLACE(JSON_VALUE(value, '$.["GASTOS GENERALES"]'), '.', ''), ',', '.') AS DECIMAL(18,2)) AS GastosGenerales,
-            TRY_CAST(REPLACE(REPLACE(JSON_VALUE(value, '$.["SERVICIOS PUBLICOS-Agua"]'), '.', ''), ',', '.') AS DECIMAL(18,2)) AS ServiciosAgua,
-            TRY_CAST(REPLACE(REPLACE(JSON_VALUE(value, '$.["SERVICIOS PUBLICOS-Luz"]'), '.', ''), ',', '.') AS DECIMAL(18,2)) AS ServiciosLuz
+            TRY_CAST(REPLACE(REPLACE(JSON_VALUE(value, '$."GASTOS GENERALES"'), '.', ''), ',', '.') AS DECIMAL(18,2)) AS GastosGenerales,
+            TRY_CAST(REPLACE(REPLACE(JSON_VALUE(value, '$."SERVICIOS PUBLICOS-Agua"'), '.', ''), ',', '.') AS DECIMAL(18,2)) AS ServiciosAgua,
+            TRY_CAST(REPLACE(REPLACE(JSON_VALUE(value, '$."SERVICIOS PUBLICOS-Luz"'), '.', ''), ',', '.') AS DECIMAL(18,2)) AS ServiciosLuz
         FROM OPENJSON(@json)
         WHERE JSON_VALUE(value, '$."Nombre del consorcio"') IS NOT NULL;
 
@@ -129,7 +129,7 @@ BEGIN
         UPDATE pn
         SET pn.IdProveedor = p.id
         FROM #ProveedoresNecesarios pn
-        INNER JOIN Proveedor p ON p.id_consorcio = pn.IdConsorcio
+        INNER JOIN Proveedor p ON p.id = pn.IdConsorcio
             AND (
                 (pn.TipoProveedor = 'Banco' AND (p.razon_social LIKE '%Banco%' OR p.razon_social LIKE '%Galicia%'))
                 OR (pn.TipoProveedor = 'Limpieza' AND p.razon_social LIKE '%Limpieza%')
@@ -143,7 +143,7 @@ BEGIN
         -- Crear proveedores faltantes si está habilitado
         IF @crearProveedores = 1
         BEGIN
-            INSERT INTO Proveedor (razon_social, id_consorcio)
+            INSERT INTO Proveedor (razon_social, id)
             SELECT pn.RazonSocial, pn.IdConsorcio
             FROM #ProveedoresNecesarios pn
             WHERE pn.IdProveedor IS NULL;
@@ -153,7 +153,7 @@ BEGIN
             SET pn.IdProveedor = p.id
             FROM #ProveedoresNecesarios pn
             INNER JOIN Proveedor p ON p.razon_social = pn.RazonSocial 
-                                  AND p.id_consorcio = pn.IdConsorcio
+                                  AND p.id = pn.IdConsorcio
             WHERE pn.IdProveedor IS NULL;
         END
 
@@ -325,7 +325,7 @@ BEGIN
         FROM Detalle_Expensa de
         WHERE de.id_expensa IN (SELECT IdExpensa FROM #TempServicios)
           AND NOT EXISTS (
-              SELECT 1 FROM Gasto_Ordinario go WHERE go.id_gasto = de.id_det_exp
+              SELECT 1 FROM Gasto_Ordinario gastoOrd WHERE gastoOrd.id_gasto = de.id_det_exp
           );
 
 
@@ -334,8 +334,6 @@ BEGIN
         
          COMMIT TRANSACTION
     END TRY
-
-
     BEGIN CATCH
         IF @@TRANCOUNT > 0
             ROLLBACK TRANSACTION;
@@ -348,11 +346,11 @@ BEGIN
         THROW;
     END CATCH
 END
-GO;
+
 
 DECLARE @jsonData NVARCHAR(MAX);
 SELECT @jsonData = BulkColumn
-FROM OPENROWSET(BULK 'C:\Program Files\Microsoft SQL Server\MSSQL16.SQLEXPRESS\MSSQL\consorcios\Servicios.Servicios.json', SINGLE_CLOB) AS j;
+FROM OPENROWSET(BULK 'C:\Temp\Consorcios\Servicios.Servicios.json', SINGLE_CLOB) AS j;
 
 EXEC SP_ImportarServicios 
     @json = @jsonData,
