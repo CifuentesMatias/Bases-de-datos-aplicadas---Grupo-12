@@ -92,9 +92,7 @@ BEGIN
             (cvu_cbu LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
             CONSTRAINT PERSONA_PK PRIMARY KEY (id),
             -- CONSTRAINT PERSONA_UK_DNI UNIQUE (dni),
-            CONSTRAINT PERSONA_UK_CBU UNIQUE (cvu_cbu),
-            CONSTRAINT PERSONA_CHK_TELEFONO CHECK (telefono 
-                LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]')
+            CONSTRAINT PERSONA_UK_CBU UNIQUE (cvu_cbu)
         );
         CREATE INDEX idx_persona_cbu_cvu ON Persona(cvu_cbu);
 
