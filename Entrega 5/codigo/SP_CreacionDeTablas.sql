@@ -81,22 +81,23 @@ BEGIN
 
         -- Tabla: Persona
         CREATE TABLE Persona (
-            id				INT IDENTITY(1,1),
-            dni				INT NOT NULL,
-            nombre			NVARCHAR(25) NULL,
-            apellido		NVARCHAR(25) NULL,
-            email			VARCHAR(255) NULL,
-            telefono		CHAR(12) NULL,
-            cbu_cvu			CHAR(22) NOT NULL,
+            id	INT IDENTITY(1,1),
+	        dni varchar(8) not null check(dni not like '%[^0-9]%'),
+	        nombre nvarchar(50) not null,
+	        apellido nvarchar(50) not null,
+	        email varchar(200) not null,
+	        cvu_cbu varchar(30) not null,
+	        telefono varchar(10) not null,
+
             CONSTRAINT PERSONA_CHK_CBU CHECK 
-            (cbu_cvu LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
+            (cvu_cbu LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
             CONSTRAINT PERSONA_PK PRIMARY KEY (id),
-            CONSTRAINT PERSONA_UK_DNI UNIQUE (dni),
-            CONSTRAINT PERSONA_UK_CBU UNIQUE (cbu_cvu),
+            -- CONSTRAINT PERSONA_UK_DNI UNIQUE (dni),
+            CONSTRAINT PERSONA_UK_CBU UNIQUE (cvu_cbu),
             CONSTRAINT PERSONA_CHK_TELEFONO CHECK (telefono 
-                LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]')
+                LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]')
         );
-        CREATE INDEX idx_persona_cbu_cvu ON Persona(cbu_cvu);
+        CREATE INDEX idx_persona_cbu_cvu ON Persona(cvu_cbu);
 
 
         CREATE TABLE Tipo_relacion (
@@ -141,13 +142,13 @@ BEGIN
         CREATE TABLE Persona_UF (
             id_consorcio INT NOT NULL,
             id_uf INT NOT NULL,
-            cbu_cvu CHAR(22) NOT NULL,
+            cvu_cbu varchar(30) not null,
             id_tipo_relacion BIT NULL,
             fecha DATE NULL,
             CONSTRAINT PK_Persona_UF PRIMARY KEY (id_consorcio, id_uf),
-            CONSTRAINT UK_Persona_UF_CBU UNIQUE (cbu_cvu),
+            CONSTRAINT UK_Persona_UF_CBU UNIQUE (cvu_cbu),
             CONSTRAINT FK_PERSONA_UF_UF FOREIGN KEY (id_consorcio, id_uf) REFERENCES UF(id_consorcio, id),
-            CONSTRAINT FK_PERSONA_UF_CBU FOREIGN KEY (cbu_cvu) REFERENCES Persona(cbu_cvu),
+            CONSTRAINT FK_PERSONA_UF_CBU FOREIGN KEY (cvu_cbu) REFERENCES Persona(cvu_cbu),
             CONSTRAINT FK_PERSONA_UF_TIPO_RELACION FOREIGN KEY (id_tipo_relacion) REFERENCES Tipo_relacion(id)
         );
 
