@@ -58,8 +58,6 @@ BEGIN
 
     BEGIN TRY
         BEGIN TRANSACTION;
-
-        PRINT 'Paso 1: Eliminando tablas existentes...';
         
         IF OBJECT_ID('Pago', 'U') IS NOT NULL DROP TABLE Pago;
         IF OBJECT_ID('Gasto_Extraordinario', 'U') IS NOT NULL DROP TABLE Gasto_Extraordinario;
@@ -77,6 +75,7 @@ BEGIN
         IF OBJECT_ID('Consorcio', 'U') IS NOT NULL DROP TABLE Consorcio;
         IF OBJECT_ID('Persona', 'U') IS NOT NULL DROP TABLE Persona;
         IF OBJECT_ID('Tipo_adicional', 'U') IS NOT NULL DROP TABLE Tipo_adicional;
+        IF OBJECT_ID('Proveedor_Consorcio', 'U') IS NOT NULL DROP TABLE Proveedor_Consorcio;
         IF OBJECT_ID('Tipo_relacion', 'U') IS NOT NULL DROP TABLE Tipo_relacion;
 
         -- Tabla: Persona
@@ -114,7 +113,7 @@ BEGIN
             id INT IDENTITY(1,1) PRIMARY KEY,
             razon_social VARCHAR(200) NOT NULL,
             domicilio VARCHAR(200) NULL,
-            m2 DECIMAL(10,2) NULL,
+            m2 DECIMAL(10,2) NULL
         );
 
         CREATE TABLE UF (
