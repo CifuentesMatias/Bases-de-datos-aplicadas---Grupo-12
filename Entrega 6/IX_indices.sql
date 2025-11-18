@@ -1,4 +1,5 @@
-
+USE Com2900G12;
+GO
 /*
 	-- tabla persona NO ES NECESARIO por UNIQUE (--busqueda por DNI --busqueda por cbu_cvu)
 	-- prorateo PK en (id_consorcio, id_uf, anio, mes)
