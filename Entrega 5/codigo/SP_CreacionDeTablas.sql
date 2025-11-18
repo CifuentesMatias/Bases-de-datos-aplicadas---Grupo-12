@@ -75,6 +75,7 @@ BEGIN
         IF OBJECT_ID('Consorcio', 'U') IS NOT NULL DROP TABLE Consorcio;
         IF OBJECT_ID('Persona', 'U') IS NOT NULL DROP TABLE Persona;
         IF OBJECT_ID('Tipo_adicional', 'U') IS NOT NULL DROP TABLE Tipo_adicional;
+        IF OBJECT_ID('Proveedor_Consorcio', 'U') IS NOT NULL DROP TABLE Proveedor_Consorcio;
         IF OBJECT_ID('Tipo_relacion', 'U') IS NOT NULL DROP TABLE Tipo_relacion;
 
         -- Tabla: Persona
