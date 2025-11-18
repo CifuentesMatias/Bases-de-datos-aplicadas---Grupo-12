@@ -69,7 +69,7 @@ BEGIN
 
 
 	SELECT
-		@nombre_consorcio as consorcio,
+		@nombre_consorcio AS consorcio,
 		anio,
 		mes,
 		tipo,
@@ -79,5 +79,20 @@ BEGIN
 	ORDER BY 
 		tipo,
 		monto;
+
+	SELECT
+		@nombre_consorcio AS consorcio,
+		anio,
+		mes,
+		tipo,
+		monto
+	FROM 
+		@temp
+	ORDER BY 
+		tipo,
+		monto
+	FOR XML 
+		PATH('Movimiento'),
+		ROOT('Reporte4');
 END; 
 GO
