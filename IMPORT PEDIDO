@@ -1,0 +1,12 @@
+INSERT INTO persona_uf (id_persona, id_uf, id_consorcio, es_propetario, fecha_alta)
+SELECT 
+    p.id_persona,
+    csv.id_uf,
+    csv.id_consorcio,
+    csv.es_propeitario,
+    GETDATE()
+FROM OPENROWSET(BULK 'C:\archivo.csv',
+                FORMAT='CSV',
+                FIRSTROW=2) AS csv
+LEFT JOIN persona p 
+    ON p.cbu = csv.cbu;
