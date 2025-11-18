@@ -1,5 +1,7 @@
-CREATE FUNCTION fn_NROSEMANA_MES(@fecha DATE) RETURNS INT AS RETURN
-(
-	DATEPART(WEEK, @fecha) - DATEPART(WEEK, DATEADD(DAY, 1 - DAY(@fecha), @fecha)) + 1
-);
+CREATE FUNCTION fn_NROSEMANA_MES(@fecha DATE) RETURNS INT AS
+BEGIN
+    RETURN DATEPART(WEEK, @fecha)
+           - DATEPART(WEEK, DATEADD(DAY, 1 - DAY(@fecha), @fecha))
+           + 1;
+END;
 GO
