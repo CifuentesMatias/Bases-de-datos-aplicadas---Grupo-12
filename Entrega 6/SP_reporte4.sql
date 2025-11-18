@@ -68,12 +68,17 @@ BEGIN
 		monto_total DESC;
 
 
+	DECLARE @cot_venta DECIMAL(10,2), @cot_compra DECIMAL(10,2);
+	EXEC sp_actualizarCotizacionDolar NULL, @cot_venta OUTPUT, @cot_compra OUTPUT;
+
 	SELECT
 		@nombre_consorcio AS consorcio,
 		anio,
 		mes,
 		tipo,
-		monto
+		monto AS [monto en pesos],
+		@cot_venta AS [Dolar al dia],
+        CONVERT(DECIMAL(10,2), (monto / @cot_venta)) AS [monto en dolares]
 	FROM 
 		@temp
 	ORDER BY 
@@ -85,7 +90,9 @@ BEGIN
 		anio,
 		mes,
 		tipo,
-		monto
+		monto AS monto_en_pesos,
+		@cot_venta AS Dolar_al_dia,
+        CONVERT(DECIMAL(10,2), (monto / @cot_venta)) AS monto_en_dolares
 	FROM 
 		@temp
 	ORDER BY 
