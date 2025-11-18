@@ -67,7 +67,7 @@ BEGIN
             
         CREATE TABLE #TempProveedores (
             Tipo_Gasto NVARCHAR(50),
-            Nombre_Detalle NVARCHAR(40), 
+            Nombre_Detalle NVARCHAR(70), 
             Referencia NVARCHAR(40),    
             Nombre_Consorcio NVARCHAR(50)
         );
