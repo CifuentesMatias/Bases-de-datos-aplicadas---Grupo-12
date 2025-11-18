@@ -71,11 +71,11 @@ BEGIN
         IF OBJECT_ID('UF', 'U') IS NOT NULL DROP TABLE UF;
         IF OBJECT_ID('Tipo_Servicio', 'U') IS NOT NULL DROP TABLE Tipo_Servicio;
         IF OBJECT_ID('Tipo_Gasto', 'U') IS NOT NULL DROP TABLE Tipo_Gasto;
+        IF OBJECT_ID('Proveedor_Consorcio', 'U') IS NOT NULL DROP TABLE Proveedor_Consorcio;
         IF OBJECT_ID('Proveedor', 'U') IS NOT NULL DROP TABLE Proveedor;
         IF OBJECT_ID('Consorcio', 'U') IS NOT NULL DROP TABLE Consorcio;
         IF OBJECT_ID('Persona', 'U') IS NOT NULL DROP TABLE Persona;
         IF OBJECT_ID('Tipo_adicional', 'U') IS NOT NULL DROP TABLE Tipo_adicional;
-        IF OBJECT_ID('Proveedor_Consorcio', 'U') IS NOT NULL DROP TABLE Proveedor_Consorcio;
         IF OBJECT_ID('Tipo_relacion', 'U') IS NOT NULL DROP TABLE Tipo_relacion;
 
         -- Tabla: Persona
@@ -86,7 +86,7 @@ BEGIN
 	        apellido nvarchar(50) not null,
 	        email varchar(200) not null,
 	        cvu_cbu varchar(30) not null,
-	        telefono varchar(10) not null,
+	        telefono varchar(11) not null,
 
             CONSTRAINT PERSONA_CHK_CBU CHECK 
             (cvu_cbu LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
@@ -94,7 +94,7 @@ BEGIN
             -- CONSTRAINT PERSONA_UK_DNI UNIQUE (dni),
             CONSTRAINT PERSONA_UK_CBU UNIQUE (cvu_cbu),
             CONSTRAINT PERSONA_CHK_TELEFONO CHECK (telefono 
-                LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]')
+                LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]')
         );
         CREATE INDEX idx_persona_cbu_cvu ON Persona(cvu_cbu);
 
@@ -121,7 +121,7 @@ BEGIN
             id INT NOT NULL,
             m2 DECIMAL(10,2) NULL,
             porcentaje DECIMAL(5,2) NULL,
-            depto INT NULL,
+            depto CHAR NULL,
             piso INT NULL,
             CONSTRAINT PK_UF PRIMARY KEY (id_consorcio, id),
             CONSTRAINT FK_UF_CONSORCIO FOREIGN KEY (id_consorcio) REFERENCES Consorcio(id)

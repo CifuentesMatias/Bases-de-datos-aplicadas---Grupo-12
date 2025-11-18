@@ -97,8 +97,9 @@ END
 GO
 
 --Esto en el main
-EXEC SP_ImportarUFDesdeArchivo @RutaArchivo = 'C:\Temp\Consorcios\UF por consorcio.txt';
+EXEC SP_ImportarUFDesdeArchivo @RutaArchivo = 'C:\Users\botta\Documents\GitHub\BaseDatosAplicadaGrupo12\Bases-de-datos-aplicadas---Grupo-12\Entrega 5\Archivos_para_importar\UF por consorcio.txt';
 
 
---select * from Adicionales;
---select * from UF
+select * from Adicionales;
+select * from UF
+
