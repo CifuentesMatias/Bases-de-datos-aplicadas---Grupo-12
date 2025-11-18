@@ -71,5 +71,21 @@ BEGIN
 		morosos
 	ORDER BY
 	 	deuda DESC;
+
+	SELECT TOP 3
+		@nombre_consorcio AS consorcio,
+		@fechaFin AS fCalculo,
+		deuda,
+		propietario,
+		prop_dni,
+		prop_email,
+		prop_tel
+	FROM 
+		morosos
+	ORDER BY
+		deuda DESC
+	FOR XML 
+		PATH('Moroso'),
+		ROOT('Reporte5');
 END; 
 GO
