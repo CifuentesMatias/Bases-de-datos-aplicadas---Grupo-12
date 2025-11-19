@@ -94,6 +94,7 @@ BEGIN
             CONSTRAINT PERSONA_PK PRIMARY KEY (id),
             -- CONSTRAINT PERSONA_UK_DNI UNIQUE (dni),
             CONSTRAINT PERSONA_UK_CBU UNIQUE (cvu_cbu)
+			CONSTRAINT FK_PERSONA_UF_TIPO_RELACION FOREIGN KEY (id_tipo_relacion) REFERENCES Tipo_relacion(id)
         );
         CREATE INDEX idx_persona_cbu_cvu ON Persona(cvu_cbu);
 
@@ -147,7 +148,7 @@ BEGIN
             CONSTRAINT UK_Persona_UF_CBU UNIQUE (cvu_cbu),
             CONSTRAINT FK_PERSONA_UF_UF FOREIGN KEY (id_consorcio, id_uf) REFERENCES UF(id_consorcio, id),
             CONSTRAINT FK_PERSONA_UF_CBU FOREIGN KEY (cvu_cbu) REFERENCES Persona(cvu_cbu),
-            CONSTRAINT FK_PERSONA_UF_TIPO_RELACION FOREIGN KEY (id_tipo_relacion) REFERENCES Tipo_relacion(id)
+           
         );
 
         CREATE TABLE Estado_de_cuenta (
