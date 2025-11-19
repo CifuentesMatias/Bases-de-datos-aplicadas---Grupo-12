@@ -1,4 +1,4 @@
-CREATE PROCEDURE sp_generarEstadoFinanciero(@nombre_consorcio NVARCHAR(50), @debug BIT = 0) AS
+CREATE PROCEDURE sp_generarEstadoFinanciero(@nombre_consorcio NVARCHAR(50), @anio INT, @mes INT, @debug BIT = 0) AS
 BEGIN
 	SET NOCOUNT ON;
 
@@ -9,9 +9,16 @@ BEGIN
 		RETURN;
 	END;
 
-	DECLARE @fecha_actual DATE = GETDATE();
-	DECLARE @anio INT = YEAR(@fecha_actual);
-	DECLARE @mes INT = MONTH(@fecha_actual);
+	DECLARE @fecha DATE;
+	IF @anio IS NULL OR @mes IS NULL OR @anio < 2020 OR @mes NOT BETWEEN 1 AND 12
+	BEGIN
+		SET @fecha = GETDATE();
+		SET @anio = YEAR(@fecha);
+		SET @mes = MONTH(@fecha);
+	END;
+	ELSE SET @fecha = DATEADD(day, 20, dbo.fn_5TODIAHABIL(DATEADD(month, 1, DATEFROMPARTS(@anio, @mes, 1))));
+
+
 	DECLARE @anio_del_mes_anterior INT = @anio;
 	DECLARE @mes_anterior INT = @mes - 1;
 	IF @mes_anterior = 0
@@ -23,7 +30,7 @@ BEGIN
 	DECLARE @vencimiento2 DATE = (SELECT vencimiento2 FROM expensa WHERE id_consorcio = @id_consorcio AND anio = @anio AND mes = @mes);
 
 	-- usamos el mes pasado
-	IF @debug = 0 AND (@vencimiento2 IS NULL OR @fecha_actual < @vencimiento2)
+	IF @debug = 0 AND (@vencimiento2 IS NULL OR @fecha < @vencimiento2)
 	BEGIN
 		SET @mes = @mes - 1;
 		IF @mes = 0
@@ -62,15 +69,12 @@ BEGIN
 							anio = @anio AND mes = @mes),
 		-- esta caja podria ser null para la primera creacion de expensa
 		caja_anterior AS (SELECT
-							saldo_final AS saldo_anterior
+							COALESCE(MAX(saldo_final), 0) AS saldo_anterior
 						  FROM 
 						  	caja
 						  WHERE
                     		id_consorcio = @id_consorcio AND
-                    		anio = @anio_del_mes_anterior AND mes = @mes_anterior
-                    	  UNION ALL
-                    	  SELECT
-                    	  	0 AS saldo_anterior)
+                    		anio = @anio_del_mes_anterior AND mes = @mes_anterior)
 	SELECT
 		@nombre_consorcio as [Consorcio],
 		@anio as [Anio],
@@ -80,6 +84,10 @@ BEGIN
 		cp.pagos_adeudados as [Pagos expensas adeudadas],
 		cp.pagos_adelantados as [Pagos expensas adelantadas],
 		ep.monto_ext + ep.monto_ord as [Gastos mes actual],
+		CASE 
+			WHEN cp.saldo_final < 0 THEN CAST(ABS(cp.saldo_final) AS VARCHAR(20))
+			ELSE '-'
+		END as [Saldo a favor],
 		cp.saldo_final as [Saldo al cierre]
 	FROM
 		expensa_periodo ep
