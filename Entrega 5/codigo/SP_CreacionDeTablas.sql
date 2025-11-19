@@ -78,6 +78,12 @@ BEGIN
         IF OBJECT_ID('Tipo_adicional', 'U') IS NOT NULL DROP TABLE Tipo_adicional;
         IF OBJECT_ID('Tipo_relacion', 'U') IS NOT NULL DROP TABLE Tipo_relacion;
 
+
+        CREATE TABLE Tipo_relacion (
+            id BIT PRIMARY KEY,
+            descripcion VARCHAR(100) NOT NULL
+        );
+
         -- Tabla: Persona
         CREATE TABLE Persona (
             id	INT IDENTITY(1,1),
@@ -87,21 +93,15 @@ BEGIN
 	        email varchar(200) not null,
 	        cvu_cbu varchar(30) not null,
 	        telefono varchar(11) not null,
-			id_tipo_relacion BIT NULL,
-
+			id_tipo_relacion BIT,
             CONSTRAINT PERSONA_CHK_CBU CHECK 
             (cvu_cbu LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
             CONSTRAINT PERSONA_PK PRIMARY KEY (id),
             -- CONSTRAINT PERSONA_UK_DNI UNIQUE (dni),
-            CONSTRAINT PERSONA_UK_CBU UNIQUE (cvu_cbu)
+            CONSTRAINT PERSONA_UK_CBU UNIQUE (cvu_cbu),
+            CONSTRAINT FK_PERSONA_TIPO_RELACION FOREIGN KEY (id_tipo_relacion) REFERENCES Tipo_relacion(id)
         );
         CREATE INDEX idx_persona_cbu_cvu ON Persona(cvu_cbu);
-
-
-        CREATE TABLE Tipo_relacion (
-            id BIT PRIMARY KEY,
-            descripcion VARCHAR(100) NOT NULL
-        );
 
         CREATE TABLE Tipo_adicional (
             id TINYINT IDENTITY(1,1) PRIMARY KEY,
@@ -147,7 +147,6 @@ BEGIN
             CONSTRAINT UK_Persona_UF_CBU UNIQUE (cvu_cbu),
             CONSTRAINT FK_PERSONA_UF_UF FOREIGN KEY (id_consorcio, id_uf) REFERENCES UF(id_consorcio, id),
             CONSTRAINT FK_PERSONA_UF_CBU FOREIGN KEY (cvu_cbu) REFERENCES Persona(cvu_cbu),
-            CONSTRAINT FK_PERSONA_UF_TIPO_RELACION FOREIGN KEY (id_tipo_relacion) REFERENCES Tipo_relacion(id)
         );
 
         CREATE TABLE Estado_de_cuenta (
