@@ -19,39 +19,39 @@ BEGIN
 
     /* IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'SCH_Pago')
     BEGIN
-        PRINT 'El schema SCH_Pago no existe. Creándolo...';
+        PRINT 'El schema SCH_Pago no existe. CreÃ¡ndolo...';
         EXEC dbo.GenerarSchemas @NombreSchema = 'SCH_Pago';
     END
     
     IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'SCH_Persona')
     BEGIN
-        PRINT 'El schema SCH_Persona no existe. Creándolo...';
+        PRINT 'El schema SCH_Persona no existe. CreÃ¡ndolo...';
         EXEC dbo.GenerarSchemas @NombreSchema = 'SCH_Persona';
     END
     
     IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'SCH_Consorcio')
     BEGIN
-        PRINT 'El schema SCH_Consorcio no existe. Creándolo...';
+        PRINT 'El schema SCH_Consorcio no existe. CreÃ¡ndolo...';
         EXEC dbo.GenerarSchemas @NombreSchema = 'SCH_Consorcio';
     END
 
     IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'SCH_UF')
     BEGIN
-        PRINT 'El schema SCH_UF no existe. Creándolo...';
+        PRINT 'El schema SCH_UF no existe. CreÃ¡ndolo...';
         EXEC dbo.GenerarSchemas @NombreSchema = 'SCH_UF';
     END
 
 
     IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'SCH_Expensa')
     BEGIN
-        PRINT 'El schema SCH_Expensa no existe. Creándolo...';
+        PRINT 'El schema SCH_Expensa no existe. CreÃ¡ndolo...';
         EXEC dbo.GenerarSchemas @NombreSchema = 'SCH_Expensa';
     END
 
 
     IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'SCH_Gasto')
     BEGIN
-        PRINT 'El schema SCH_Gasto no existe. Creándolo...';
+        PRINT 'El schema SCH_Gasto no existe. CreÃ¡ndolo...';
         EXEC dbo.GenerarSchemas @NombreSchema = 'SCH_Gasto'; 
     END */
 
@@ -87,6 +87,7 @@ BEGIN
 	        email varchar(200) not null,
 	        cvu_cbu varchar(30) not null,
 	        telefono varchar(11) not null,
+			id_tipo_relacion BIT NULL,
 
             CONSTRAINT PERSONA_CHK_CBU CHECK 
             (cvu_cbu LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]'),
@@ -140,7 +141,7 @@ BEGIN
             id_consorcio INT NOT NULL,
             id_uf INT NOT NULL,
             cvu_cbu varchar(30) not null,
-            id_tipo_relacion BIT NULL,
+            
             fecha DATE NULL,
             CONSTRAINT PK_Persona_UF PRIMARY KEY (id_consorcio, id_uf),
             CONSTRAINT UK_Persona_UF_CBU UNIQUE (cvu_cbu),
@@ -265,7 +266,7 @@ BEGIN
         PRINT '';
         PRINT 'ERROR AL CREAR ESTRUCTURA:';
         PRINT 'Mensaje: ' + ERROR_MESSAGE();
-        PRINT 'Línea: ' + CAST(ERROR_LINE() AS VARCHAR(10));
+        PRINT 'LÃ­nea: ' + CAST(ERROR_LINE() AS VARCHAR(10));
         PRINT 'Procedimiento: ' + ISNULL(ERROR_PROCEDURE(), 'N/A');
         
         THROW;
