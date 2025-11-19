@@ -1,4 +1,4 @@
-CREATE PROCEDURE sp_generarProrateo(@nombre_consorcio NVARCHAR(50), @debug BIT = 0) AS
+CREATE PROCEDURE sp_generarProrateo(@nombre_consorcio NVARCHAR(50), @anio INT, @mes INT, @debug BIT = 0) AS
 BEGIN
 	SET NOCOUNT ON;
 
@@ -9,38 +9,34 @@ BEGIN
 		RETURN;
 	END;
 
-	DECLARE @fecha_actual DATE = GETDATE();
-	DECLARE @quintoDiaHabil DATE = dbo.fn_5TODIAHABIL(@fecha_actual);
-	DECLARE @anio INT = YEAR(@fecha_actual);
-	DECLARE @mes INT = MONTH(@fecha_actual);
-	DECLARE @vencimiento2 DATE = (SELECT vencimiento2 FROM expensa WHERE id_consorcio = @id_consorcio AND anio = @anio AND mes = @mes);
+	
+	DECLARE @fecha DATE;
+	IF @anio IS NULL OR @mes IS NULL OR @anio < 2020 OR @mes NOT BETWEEN 1 AND 12
+	BEGIN
+		SET @fecha = GETDATE();
+		SET @anio = YEAR(@fecha);
+		SET @mes = MONTH(@fecha);
+	END;
+	ELSE SET @fecha = dbo.fn_5TODIAHABIL(DATEADD(month, 1, DATEFROMPARTS(@anio, @mes, 1)));
 
-	IF @debug = 0 AND (@vencimiento2 IS NULL OR @fecha_actual NOT BETWEEN @quintoDiaHabil AND @vencimiento2)
+
+	DECLARE @quintoDiaHabil DATE = dbo.fn_5TODIAHABIL(@fecha);
+	DECLARE @vencimiento2 DATE = (SELECT vencimiento2 FROM expensa WHERE id_consorcio = @id_consorcio AND anio = @anio AND mes = @mes);
+	IF @debug = 0 AND (@vencimiento2 IS NULL OR @fecha NOT BETWEEN @quintoDiaHabil AND @vencimiento2)
 	BEGIN
 		RAISERROR('algo anda mal con las fechas', 16, 2);
 		RETURN;
 	END;
 
-	DECLARE @esCochera INT = (SELECT id FROM tipo_adicional WHERE descripcion = 'Cochera');
-	DECLARE @esBaulera INT = (SELECT id FROM tipo_adicional WHERE descripcion = 'Baulera');
 
 	WITH
 		consorcio_uf AS (SELECT 
-							uf.id_uf,
-							uf.coef,
-							SUM(CASE WHEN auf.id_tipo_adicional = @esCochera THEN auf.coef ELSE 0 END) AS coef_cochera,
-							SUM(CASE WHEN auf.id_tipo_adicional = @esBaulera THEN auf.coef ELSE 0 END) AS coef_baulera
+							id_uf,
+							coef
 						 FROM 
-						 	unidad_funcional uf
-						 LEFT JOIN 
-						 	adicional_uf auf 
-						 	ON auf.id_consorcio = uf.id_consorcio 
-						 	AND auf.id_uf = uf.id_uf
+						 	unidad_funcional
 						 WHERE 
-						 	uf.id_consorcio = @id_consorcio
-						 GROUP BY
-						 	uf.id_uf,
-						 	uf.coef),
+						 	id_consorcio = @id_consorcio),
 
 		expensa_periodo AS (SELECT 
 								* 
@@ -50,16 +46,14 @@ BEGIN
 								id_consorcio = @id_consorcio AND
 								anio = @anio AND mes = @mes)
 
-	INSERT INTO prorateo(id_consorcio, anio, mes, id_uf, monto_ord, monto_coc, monto_bau, monto_ext)
+	INSERT INTO prorateo(id_consorcio, anio, mes, id_uf, monto_ord, monto_ext)
 	SELECT
 		@id_consorcio,
 		@anio,
 		@mes,
 		cuf.id_uf,
-		(e.monto_ord * cuf.coef/100) AS ordinarias,
-		((e.monto_ord + e.monto_ext) * cuf.coef_cochera/100) AS cocheras,
-		((e.monto_ord + e.monto_ext) * cuf.coef_baulera/100) AS bauleras,
-		(e.monto_ext * cuf.coef/100) AS extraordinarias
+		e.monto_ord * (cuf.coef/100) AS ordinarias,
+		e.monto_ext * (cuf.coef/100) AS extraordinarias
 	FROM
 		consorcio_uf cuf
 	CROSS JOIN 
@@ -68,7 +62,8 @@ BEGIN
 
 	IF @debug = 1
 	BEGIN
-		SELECT * FROM prorateo
+		SELECT *
+		FROM prorateo
 		WHERE id_consorcio = @id_consorcio  
 		AND	anio = @anio AND mes = @mes;
 	END;
