@@ -59,8 +59,6 @@ BEGIN
             WHERE c.razon_social = t.Nombre_Consorcio
         );
         
-        PRINT 'Consorcios importados: ' + CAST(@@ROWCOUNT AS NVARCHAR(10));
-        
         -- Tabla temporal para Proveedores
         IF OBJECT_ID('tempdb..#TempProveedores') IS NOT NULL 
             DROP TABLE #TempProveedores;

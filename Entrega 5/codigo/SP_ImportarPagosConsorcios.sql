@@ -1,71 +1,82 @@
-if db_id('Com2900G12') is null
+﻿if db_id('Com2900G12') is null
 	create database Com2900G12 collate Modern_Spanish_CI_AS;
 go
 
 use Com2900G12
 go
 
-
---------------------------------------------------------
-
--------- IMPORTACION DE PAGOS (pagos_consorcios.csv) --------
 create or alter procedure SP_ImportarPagosConsorcios
-	@RutaArchivo nvarchar(500)
+	@RutaArchivo nvarchar(1000)
 as
 begin
+	SET NOCOUNT ON;
+    
+    DECLARE @ErrorState INT;
+
 	begin try
-		set nocount on;
+        BEGIN TRANSACTION;
+        IF OBJECT_ID('tempdb..#tmpPagoRaw') IS NOT NULL DROP TABLE #tmpPagoRaw;
 
-        SET IDENTITY_INSERT Pago ON;
+        SET IDENTITY_INSERT Pago ON;
 
-        -- Tabla temporal para recibir datos en crudo (todo como VARCHAR)
-        CREATE TABLE #tmpPagoRaw(
-            id int not null,
-            fecha_pago VARCHAR(20) not null,
-            cbu_cvu VARCHAR(30) not null,
-            monto VARCHAR(20) not null
-        );
+        CREATE TABLE #tmpPagoRaw(
+            id varchar(10) not null,
+            fecha_pago VARCHAR(20) not null,
+            cbu_cvu VARCHAR(30) not null,
+            monto VARCHAR(20) not null
+        );
+
+        DECLARE @SQL NVARCHAR(MAX);
+        SET @SQL = 
+        N'BULK INSERT #tmpPagoRaw
+        FROM '''+@RutaArchivo+'''
+        WITH (
+            FIRSTROW = 2,
+            FIELDTERMINATOR = '','',
+            ROWTERMINATOR = ''\n'',
+            TABLOCK,
+            CODEPAGE = ''65001''
+        );';
+        
+
+        EXEC sp_executesql @SQL;
+        
+        INSERT INTO Pago(id_pago, fecha_pago, cbu_cvu, monto)
+        SELECT 
+            CAST(TRIM(T.id) AS INT),
+            CONVERT(DATE, TRIM(T.fecha_pago), 103),
+            TRIM(T.cbu_cvu),
+            CAST(M.MontoLimpio AS DECIMAL(10,3))
+        FROM #tmpPagoRaw T
+        CROSS APPLY (
+            SELECT TRIM(REPLACE(REPLACE(REPLACE(T.monto, '$', ''),'.', ''), ',', '.')) AS MontoLimpio
+        ) AS M
+        WHERE 
+            TRIM(T.id) <> ''
+            AND ISNUMERIC(M.MontoLimpio) = 1 
+            AND M.MontoLimpio <> ''
+            AND NOT EXISTS (SELECT 1 FROM Pago p WHERE p.id_pago = CAST(TRIM(T.id) AS INT));
+
+        COMMIT TRANSACTION;
         
-        -- Cargar archivo CSV usando BULK INSERT din�mico
-        DECLARE @SQL NVARCHAR(MAX);
-        SET @SQL = 
-        N'BULK INSERT #tmpPagoRaw
-        FROM '''+@RutaArchivo+'''
-        WITH (
-            FIRSTROW = 2,
-            FIELDTERMINATOR = '','',
-            ROWTERMINATOR = ''\n'',
-            TABLOCK,
-            CODEPAGE = ''65001''
-        );';
+        SET IDENTITY_INSERT Pago OFF;
+        
+        SELECT * FROM Pago;
         
-        PRINT @SQL;
-        EXEC sp_executesql @SQL;
-        
-        -- Insertar limpiando y transformando los datos
-        INSERT INTO Pago(id_pago, fecha_pago, cbu_cvu, monto)
-        SELECT 
-            CAST(LTRIM(RTRIM(id)) AS INT),
-            CONVERT(DATE, LTRIM(RTRIM(fecha_pago)), 103), -- Convierte el varchar a DATE en formato dd/mm/yyyy
-            LTRIM(RTRIM(cbu_cvu)), -- Esto limpia si tiene espacios a derecha o izquierda
-            CAST(REPLACE(
-                    REPLACE(monto, '$', ''),
-                    ',', '.'
-                ) AS DECIMAL(10,3))
-        FROM #tmpPagoRaw;
-        
-        -- Mostrar los datos finales
-        SELECT * FROM Pago;
-        
-        PRINT 'Importaci�n completada';
-        
-        -- Limpiar tablas temporales
-        DROP TABLE #tmpPagoRaw;
+        DROP TABLE #tmpPagoRaw;
 	end try
 	begin catch
+        SET @ErrorState = XACT_STATE();
+
+        IF @ErrorState <> 0 AND @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+            
 		print 'Error en la imporacion';
-		PRINT ERROR_MESSAGE();
+		PRINT 'Mensaje Detallado: ' + ERROR_MESSAGE();
+        PRINT 'Número de error: ' + CAST(ERROR_NUMBER() AS NVARCHAR(10));
 	end catch
 end
+go
 
-exec SP_ImportarPagosConsorcios @RutaArchivo = 'C:\Temp\Consorcios\pagos_consorcios.csv';
+exec SP_ImportarPagosConsorcios
+@RutaArchivo = 'C:\Users\botta\Documents\GitHub\BaseDatosAplicadaGrupo12\Bases-de-datos-aplicadas---Grupo-12\Entrega 5\Archivos_para_importar\pagos_consorcios.csv';
