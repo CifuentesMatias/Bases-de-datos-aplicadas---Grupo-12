@@ -1,5 +1,5 @@
-IF DB_ID('Com2900G12') IS NULL
-    CREATE DATABASE Com2900G12 COLLATE Modern_Spanish_CI_AS;;
+﻿IF DB_ID('Com2900G12') IS NULL
+    CREATE DATABASE Com2900G12 COLLATE Modern_Spanish_CI_AS;
 GO
 
 USE Com2900G12;
@@ -45,7 +45,6 @@ BEGIN
         
         EXEC sp_executesql @sql;
 
-        -- Insertar UF
         INSERT INTO UF (id_consorcio, id, m2, porcentaje, depto, piso)
         SELECT 
             c.id,
@@ -55,9 +54,13 @@ BEGIN
             r.departamento,
             CASE WHEN r.piso = 'PB' THEN 0 ELSE TRY_CAST(r.piso AS INT) END
         FROM #UF_RAW r
-        INNER JOIN Consorcio c ON c.razon_social = r.razon_social;
+        INNER JOIN Consorcio c ON c.razon_social = r.razon_social
+        WHERE NOT EXISTS (
+            SELECT 1 FROM UF u
+            WHERE u.id_consorcio = c.id 
+              AND u.id = TRY_CAST(r.nroUnidadFuncional AS INT)
+        );
         
-        -- Insertar Bauleras
         INSERT INTO Adicionales (id_consorcio, id_uf, m2, porcentaje, id_tipo_adicional)
         SELECT 
             c.id,
@@ -67,9 +70,14 @@ BEGIN
             (SELECT id FROM Tipo_adicional WHERE descripcion LIKE '%Baulera%')
         FROM #UF_RAW r
         INNER JOIN Consorcio c ON c.razon_social = r.razon_social
-        WHERE UPPER(r.bauleras) = 'SI';
-        
-        -- Insertar Cocheras
+        WHERE UPPER(r.bauleras) = 'SI'
+          AND NOT EXISTS (
+              SELECT 1 FROM Adicionales a
+              WHERE a.id_consorcio = c.id 
+                AND a.id_uf = TRY_CAST(r.nroUnidadFuncional AS INT)
+                AND a.id_tipo_adicional = (SELECT id FROM Tipo_adicional WHERE descripcion LIKE '%Baulera%')
+          );
+
         INSERT INTO Adicionales (id_consorcio, id_uf, m2, porcentaje, id_tipo_adicional)
         SELECT 
             c.id,
@@ -79,11 +87,18 @@ BEGIN
             (SELECT id FROM Tipo_adicional WHERE descripcion LIKE '%Cochera%')
         FROM #UF_RAW r
         INNER JOIN Consorcio c ON c.razon_social = r.razon_social
-        WHERE UPPER(r.cochera) = 'SI';
+        WHERE UPPER(r.cochera) = 'SI'
+          AND NOT EXISTS (
+              SELECT 1 FROM Adicionales a
+              WHERE a.id_consorcio = c.id 
+                AND a.id_uf = TRY_CAST(r.nroUnidadFuncional AS INT)
+                AND a.id_tipo_adicional = (SELECT id FROM Tipo_adicional WHERE descripcion LIKE '%Cochera%')
+          );
         
         DROP TABLE #UF_RAW;
         
         COMMIT TRANSACTION;
+        PRINT '✓ Importación completada';
         
     END TRY
     BEGIN CATCH
@@ -96,10 +111,8 @@ BEGIN
 END
 GO
 
---Esto en el main
-EXEC SP_ImportarUFDesdeArchivo @RutaArchivo = 'C:\Users\botta\Documents\GitHub\BaseDatosAplicadaGrupo12\Bases-de-datos-aplicadas---Grupo-12\Entrega 5\Archivos_para_importar\UF por consorcio.txt';
+EXEC SP_ImportarUFDesdeArchivo 
+    @RutaArchivo = 'C:\Users\botta\Documents\GitHub\BaseDatosAplicadaGrupo12\Bases-de-datos-aplicadas---Grupo-12\Entrega 5\Archivos_para_importar\UF por consorcio.txt';
 
-
-select * from Adicionales;
-select * from UF
-
+SELECT * FROM UF;
+SELECT * FROM Adicionales;
