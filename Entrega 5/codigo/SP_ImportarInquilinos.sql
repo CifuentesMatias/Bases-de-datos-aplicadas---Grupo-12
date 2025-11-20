@@ -53,8 +53,7 @@ BEGIN
         ); 
 
         DROP TABLE #tmpPersona;
-        
-        PRINT 'Importación de Personas completada exitosamente.';
+
     END TRY
     BEGIN CATCH
         PRINT 'Error en la importación';
