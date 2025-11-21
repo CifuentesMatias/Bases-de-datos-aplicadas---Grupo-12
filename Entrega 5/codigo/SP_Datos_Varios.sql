@@ -86,29 +86,53 @@ BEGIN
         
         -- Insertar en tabla Proveedor
         INSERT INTO Proveedor (razon_social, cuenta)
-        SELECT 
-            t.Nombre_Detalle, 
-            t.Referencia
+        SELECT DISTINCT
+            TRIM(t.Nombre_Detalle), 
+            TRIM(t.Referencia)
         FROM #TempProveedores t
-        WHERE t.Nombre_Detalle IS NOT NULL
+        WHERE TRIM(t.Nombre_Detalle) IS NOT NULL 
             AND NOT EXISTS (
-                SELECT 1 FROM Proveedor p 
-                WHERE p.razon_social = t.Nombre_Detalle
+                SELECT 1 
+                FROM Proveedor p 
+                WHERE 
+                    TRIM(p.razon_social) = TRIM(t.Nombre_Detalle) 
+                    AND ISNULL(p.cuenta, '') = ISNULL(TRIM(t.Referencia), '')
             );
-        
-        -- Insertar en tabla Proveedor_Consorcio
+            -- Insertar en tabla Proveedor_Consorcio
         INSERT INTO Proveedor_Consorcio (id_consorcio, id_proveedor)
         SELECT DISTINCT 
             c.id,
             p.id
         FROM #TempProveedores t
-        JOIN Consorcio c ON c.razon_social = t.Nombre_Consorcio
-        JOIN Proveedor p ON p.razon_social = t.Nombre_Detalle
+        JOIN Consorcio c ON c.razon_social = trim(t.Nombre_Consorcio)
+        JOIN Proveedor p ON p.razon_social = trim(t.Nombre_Detalle) AND ISNULL(p.cuenta, '') = ISNULL(TRIM(t.Referencia), '')
         WHERE NOT EXISTS (
             SELECT 1 FROM Proveedor_Consorcio pc 
             WHERE pc.id_consorcio = c.id AND pc.id_proveedor = p.id
         );
         
+        INSERT INTO Proveedor_Consorcio (id_consorcio, id_proveedor)
+        SELECT c.id, p.id 
+        FROM Proveedor p 
+        CROSS JOIN Consorcio c
+        WHERE TRIM(c.razon_social) = 'Alberdi' 
+          AND TRIM(p.razon_social) = 'BANCO CREDICOOP - Gastos bancario'
+        AND NOT EXISTS (
+            SELECT 1 FROM Proveedor_Consorcio pc 
+            WHERE pc.id_consorcio = c.id AND pc.id_proveedor = p.id
+        );
+
+
+        INSERT INTO Proveedor_Consorcio (id_consorcio, id_proveedor)
+        SELECT c.id, p.id 
+        FROM Proveedor p 
+        CROSS JOIN Consorcio c
+        WHERE TRIM(c.razon_social) = 'Alberdi' 
+          AND TRIM(p.razon_social) = 'FLAVIO HERNAN DIAZ - Honorarios'
+        AND NOT EXISTS (
+            SELECT 1 FROM Proveedor_Consorcio pc 
+            WHERE pc.id_consorcio = c.id AND pc.id_proveedor = p.id
+        );
         COMMIT TRANSACTION;
         
     END TRY
@@ -129,3 +153,6 @@ GO
 
 -- Ejecutar el procedimiento
 EXEC dbo.SP_DatosVarios;
+
+SELECT * FROM Proveedor_Consorcio
+Select * from Proveedor

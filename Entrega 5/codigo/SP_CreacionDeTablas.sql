@@ -254,6 +254,33 @@ BEGIN
             CONSTRAINT PAGO_CHK_CBU CHECK 
             (cbu_cvu LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]')            
         );
+
+        INSERT INTO dbo.Tipo_relacion (id, descripcion) VALUES
+        (0, 'Propietario'),
+        (1, 'Inquilino');
+
+        SET IDENTITY_INSERT dbo.Tipo_adicional ON;
+        INSERT INTO dbo.Tipo_adicional (id, descripcion) VALUES
+        (1, 'Cochera'),
+        (2, 'Baulera');
+        SET IDENTITY_INSERT dbo.Tipo_adicional OFF;
+
+        SET IDENTITY_INSERT dbo.Tipo_Gasto ON;
+        INSERT INTO dbo.Tipo_Gasto (id, descripcion) VALUES
+        (1, 'Ordinario'),
+        (2, 'Extraordinario');
+        SET IDENTITY_INSERT dbo.Tipo_Gasto OFF;
+
+        SET IDENTITY_INSERT dbo.Tipo_Servicio ON;
+        INSERT INTO dbo.Tipo_Servicio (id, descripcion, id_tipo_gasto) VALUES
+        (1, 'Extraordionario', 2),
+        (2, 'SERVICIOS PUBLICOS', 1),
+        (3, 'Gastos Generales', 1),
+        (4, 'GASTOS DE LIMPIEZA', 1),
+        (5, 'GASTOS BANCARIOS', 1),
+        (6, 'GASTOS DE ADMINISTRACION', 1),
+        (7, 'SEGUROS', 1);
+        SET IDENTITY_INSERT dbo.Tipo_Servicio OFF;
         
         COMMIT TRANSACTION;
         
