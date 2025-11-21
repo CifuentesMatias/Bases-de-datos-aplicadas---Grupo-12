@@ -131,8 +131,8 @@ BEGIN
             id_uf INT NOT NULL,
             m2 DECIMAL(10,2) NULL,
             porcentaje DECIMAL(5,2) NULL,
-            id_tipo_adicional TINYINT NULL,
-            CONSTRAINT PK_Adicionales PRIMARY KEY (id_consorcio, id_uf),
+            id_tipo_adicional TINYINT NOT NULL,
+            CONSTRAINT PK_Adicionales PRIMARY KEY (id_consorcio, id_uf, id_tipo_adicional),
             CONSTRAINT FK_ADICIONALES_TIPO_ADICIONAL FOREIGN KEY (id_tipo_adicional) REFERENCES Tipo_adicional(id),
             CONSTRAINT FK_ADICIONALES_UF FOREIGN KEY (id_consorcio, id_uf) REFERENCES UF(id_consorcio, id)
         );
