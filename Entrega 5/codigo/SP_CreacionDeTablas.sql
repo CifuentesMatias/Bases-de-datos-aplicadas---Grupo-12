@@ -1,13 +1,9 @@
 if db_id('Com2900G12') is null
 	create database Com2900G12 collate Modern_Spanish_CI_AS;
 go
-
 use Com2900G12
 go
 
---------------------------------------------------------
-
--- Eliminar SP si existe
 IF OBJECT_ID('SP_CrearTablasYSchemas', 'P') IS NOT NULL
     DROP PROCEDURE SP_CrearTablasYSchemas;
 GO
@@ -16,49 +12,38 @@ CREATE or ALTER PROCEDURE SP_CrearTablasYSchemas
 AS
 BEGIN
     SET NOCOUNT ON;
-
     /* IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'SCH_Pago')
     BEGIN
         PRINT 'El schema SCH_Pago no existe. Creándolo...';
         EXEC dbo.GenerarSchemas @NombreSchema = 'SCH_Pago';
     END
-    
     IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'SCH_Persona')
     BEGIN
         PRINT 'El schema SCH_Persona no existe. Creándolo...';
         EXEC dbo.GenerarSchemas @NombreSchema = 'SCH_Persona';
     END
-    
     IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'SCH_Consorcio')
     BEGIN
         PRINT 'El schema SCH_Consorcio no existe. Creándolo...';
         EXEC dbo.GenerarSchemas @NombreSchema = 'SCH_Consorcio';
     END
-
     IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'SCH_UF')
     BEGIN
         PRINT 'El schema SCH_UF no existe. Creándolo...';
         EXEC dbo.GenerarSchemas @NombreSchema = 'SCH_UF';
     END
-
-
     IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'SCH_Expensa')
     BEGIN
         PRINT 'El schema SCH_Expensa no existe. Creándolo...';
         EXEC dbo.GenerarSchemas @NombreSchema = 'SCH_Expensa';
     END
-
-
     IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'SCH_Gasto')
     BEGIN
         PRINT 'El schema SCH_Gasto no existe. Creándolo...';
         EXEC dbo.GenerarSchemas @NombreSchema = 'SCH_Gasto'; 
     END */
-
-
     BEGIN TRY
         BEGIN TRANSACTION;
-        
         IF OBJECT_ID('Pago', 'U') IS NOT NULL DROP TABLE Pago;
         IF OBJECT_ID('Gasto_Extraordinario', 'U') IS NOT NULL DROP TABLE Gasto_Extraordinario;
         IF OBJECT_ID('Gasto_Ordinario', 'U') IS NOT NULL DROP TABLE Gasto_Ordinario;
@@ -69,22 +54,18 @@ BEGIN
         IF OBJECT_ID('Persona_UF', 'U') IS NOT NULL DROP TABLE Persona_UF;
         IF OBJECT_ID('Adicionales', 'U') IS NOT NULL DROP TABLE Adicionales;
         IF OBJECT_ID('UF', 'U') IS NOT NULL DROP TABLE UF;
-        IF OBJECT_ID('Tipo_Servicio', 'U') IS NOT NULL DROP TABLE Tipo_Servicio;
-        IF OBJECT_ID('Tipo_Gasto', 'U') IS NOT NULL DROP TABLE Tipo_Gasto;
         IF OBJECT_ID('Proveedor_Consorcio', 'U') IS NOT NULL DROP TABLE Proveedor_Consorcio;
         IF OBJECT_ID('Proveedor', 'U') IS NOT NULL DROP TABLE Proveedor;
+        IF OBJECT_ID('Tipo_Servicio', 'U') IS NOT NULL DROP TABLE Tipo_Servicio;
+        IF OBJECT_ID('Tipo_Gasto', 'U') IS NOT NULL DROP TABLE Tipo_Gasto;
         IF OBJECT_ID('Consorcio', 'U') IS NOT NULL DROP TABLE Consorcio;
         IF OBJECT_ID('Persona', 'U') IS NOT NULL DROP TABLE Persona;
         IF OBJECT_ID('Tipo_adicional', 'U') IS NOT NULL DROP TABLE Tipo_adicional;
         IF OBJECT_ID('Tipo_relacion', 'U') IS NOT NULL DROP TABLE Tipo_relacion;
-
-
         CREATE TABLE Tipo_relacion (
             id BIT PRIMARY KEY,
             descripcion VARCHAR(100) NOT NULL
         );
-
-        -- Tabla: Persona
         CREATE TABLE Persona (
             id	INT IDENTITY(1,1),
 	        dni varchar(8) not null check(dni not like '%[^0-9]%'),
@@ -102,19 +83,16 @@ BEGIN
             CONSTRAINT FK_PERSONA_TIPO_RELACION FOREIGN KEY (id_tipo_relacion) REFERENCES Tipo_relacion(id)
         );
         CREATE INDEX idx_persona_cbu_cvu ON Persona(cvu_cbu);
-
         CREATE TABLE Tipo_adicional (
             id TINYINT IDENTITY(1,1) PRIMARY KEY,
             descripcion VARCHAR(100) NOT NULL
         );
-
         CREATE TABLE Consorcio (
             id INT IDENTITY(1,1) PRIMARY KEY,
             razon_social VARCHAR(200) NOT NULL,
             domicilio VARCHAR(200) NULL,
             m2 DECIMAL(10,2) NULL
         );
-
         CREATE TABLE UF (
             id_consorcio INT NOT NULL,
             id INT NOT NULL,
@@ -125,7 +103,6 @@ BEGIN
             CONSTRAINT PK_UF PRIMARY KEY (id_consorcio, id),
             CONSTRAINT FK_UF_CONSORCIO FOREIGN KEY (id_consorcio) REFERENCES Consorcio(id)
         );
-
         CREATE TABLE Adicionales (
             id_consorcio INT NOT NULL,
             id_uf INT NOT NULL,
@@ -136,19 +113,16 @@ BEGIN
             CONSTRAINT FK_ADICIONALES_TIPO_ADICIONAL FOREIGN KEY (id_tipo_adicional) REFERENCES Tipo_adicional(id),
             CONSTRAINT FK_ADICIONALES_UF FOREIGN KEY (id_consorcio, id_uf) REFERENCES UF(id_consorcio, id)
         );
-
         CREATE TABLE Persona_UF (
             id_consorcio INT NOT NULL,
             id_uf INT NOT NULL,
             cvu_cbu varchar(30) not null,
-            
             fecha DATE NULL,
             CONSTRAINT PK_Persona_UF PRIMARY KEY (id_consorcio, id_uf),
             CONSTRAINT UK_Persona_UF_CBU UNIQUE (cvu_cbu),
             CONSTRAINT FK_PERSONA_UF_UF FOREIGN KEY (id_consorcio, id_uf) REFERENCES UF(id_consorcio, id),
             CONSTRAINT FK_PERSONA_UF_CBU FOREIGN KEY (cvu_cbu) REFERENCES Persona(cvu_cbu),
         );
-
         CREATE TABLE Estado_de_cuenta (
             id_cuenta INT IDENTITY(1,1) PRIMARY KEY,
             id_consorcio INT NOT NULL,
@@ -165,7 +139,6 @@ BEGIN
             CONSTRAINT FK_ESTADO_DE_CUENTA_UF FOREIGN KEY (id_consorcio, id_uf) REFERENCES UF(id_consorcio, id),
             CONSTRAINT CHK_ESTADO_CUENTA_MES CHECK (mes BETWEEN 1 AND 12)
         );
-
         CREATE TABLE Estado_financiero (
             id_est_finan INT IDENTITY(1,1) PRIMARY KEY,
             id_consorcio INT NOT NULL,
@@ -180,7 +153,6 @@ BEGIN
             CONSTRAINT FK_ESTADO_FINANCIERO_CONSORCIO FOREIGN KEY (id_consorcio) REFERENCES Consorcio(id),
             CONSTRAINT CHK_ESTADO_FINANCIERO_MES CHECK (mes BETWEEN 1 AND 12)
         );
-
         CREATE TABLE Expensa (
             id INT IDENTITY(1,1) PRIMARY KEY,
             id_consorcio INT NOT NULL,
@@ -191,26 +163,10 @@ BEGIN
             CONSTRAINT FK_EXPENSA_CONSORCIO FOREIGN KEY (id_consorcio) REFERENCES Consorcio(id),
             CONSTRAINT CHK_EXPENSA_MES CHECK (mes BETWEEN 1 AND 12)
         );
-
-        CREATE TABLE Proveedor (
-            id INT IDENTITY(1,1) PRIMARY KEY,
-            razon_social VARCHAR(200) NOT NULL,
-            cuenta varchar(50),
-            );
-
-        CREATE TABLE Proveedor_Consorcio(
-        id_consorcio int,
-        id_proveedor INT,
-        CONSTRAINT PK_PROVEEDOR_CONSORCIO PRIMARY KEY (id_consorcio, id_proveedor),
-        CONSTRAINT FK_PROV_CONS FOREIGN KEY (id_consorcio) references Consorcio (id),
-        CONSTRAINT FK_CONS_PROV FOREIGN KEY (id_proveedor) references Proveedor (id)
-        );
-
         CREATE TABLE Tipo_Gasto (
             id INT IDENTITY(1,1) PRIMARY KEY,
             descripcion VARCHAR(100) NOT NULL
         );
-
         CREATE TABLE Tipo_Servicio (
             id INT IDENTITY(1,1) PRIMARY KEY,
             descripcion VARCHAR(100) NOT NULL,
@@ -218,32 +174,40 @@ BEGIN
             CONSTRAINT FK_TIPO_SERVICIO_TIPO_GASTO FOREIGN KEY (id_tipo_gasto) REFERENCES Tipo_Gasto(id)
         );
 
+        CREATE TABLE Proveedor (
+            id INT IDENTITY(1,1) PRIMARY KEY,
+            razon_social VARCHAR(200) NOT NULL,
+            cuenta varchar(50),
+            id_tipo_servicio int,
+            CONSTRAINT FK_PROVEEDOR_TIPO_SERVICIO FOREIGN KEY (id_tipo_servicio) REFERENCES Tipo_Servicio(id)
+            );
+        CREATE TABLE Proveedor_Consorcio(
+        id_consorcio int,
+        id_proveedor INT,
+        CONSTRAINT PK_PROVEEDOR_CONSORCIO PRIMARY KEY (id_consorcio, id_proveedor),
+        CONSTRAINT FK_PROV_CONS FOREIGN KEY (id_consorcio) references Consorcio (id),
+        CONSTRAINT FK_CONS_PROV FOREIGN KEY (id_proveedor) references Proveedor (id)
+        )
         CREATE TABLE Detalle_Expensa (
             id_det_exp INT IDENTITY(1,1) PRIMARY KEY,
             id_expensa INT NOT NULL,
-            fecha DATE NULL,
             importe DECIMAL(12,2) NULL,
             id_proveedor INT NULL,
-            id_tipo_servicio INT NULL,
             descripcion NVARCHAR(100) NULL,
             CONSTRAINT FK_DET_EXP_EXPENSA FOREIGN KEY (id_expensa) REFERENCES Expensa(id),
-            CONSTRAINT FK_DET_EXP_PROVEEDOR FOREIGN KEY (id_proveedor) REFERENCES Proveedor(id),
-            CONSTRAINT FK_DET_EXP_TIPO_SERVICIO FOREIGN KEY (id_tipo_servicio) REFERENCES Tipo_Servicio(id)
+            CONSTRAINT FK_DET_EXP_PROVEEDOR FOREIGN KEY (id_proveedor) REFERENCES Proveedor(id)
         );
-
         CREATE TABLE Gasto_Ordinario (
             id_gasto INT PRIMARY KEY,
             nro_factura VARCHAR(50) NULL,
             CONSTRAINT FK_ORDINARIO_DET_EXP FOREIGN KEY (id_gasto) REFERENCES Detalle_Expensa(id_det_exp)
         );
-
         CREATE TABLE Gasto_Extraordinario (
             id_gasto INT PRIMARY KEY,
             cant_cuota INT NULL,
             cuota_pagada INT DEFAULT 0,
             CONSTRAINT FK_EXTRAORDINARIO_DET_EXP FOREIGN KEY (id_gasto) REFERENCES Detalle_Expensa(id_det_exp)
         );
-
         CREATE TABLE Pago (
             id_pago INT IDENTITY(1,1) PRIMARY KEY,
             fecha_pago DATE NULL,
@@ -273,13 +237,15 @@ BEGIN
 
         SET IDENTITY_INSERT dbo.Tipo_Servicio ON;
         INSERT INTO dbo.Tipo_Servicio (id, descripcion, id_tipo_gasto) VALUES
-        (1, 'Extraordionario', 2),
-        (2, 'SERVICIOS PUBLICOS', 1),
-        (3, 'Gastos Generales', 1),
+        (1, 'Extraordinario', 2),
+        (2, 'SERVICIOS PUBLICOS - Luz', 1),
+        (3, 'GASTOS GENERALES', 1),
         (4, 'GASTOS DE LIMPIEZA', 1),
         (5, 'GASTOS BANCARIOS', 1),
         (6, 'GASTOS DE ADMINISTRACION', 1),
-        (7, 'SEGUROS', 1);
+        (7, 'SEGUROS', 1),
+        (8, 'SERVICIOS PUBLICOS - Agua', 1),
+        (9, 'SERVICIOS PUBLICOS - Internet', 1);
         SET IDENTITY_INSERT dbo.Tipo_Servicio OFF;
         
         COMMIT TRANSACTION;
@@ -288,16 +254,13 @@ BEGIN
     BEGIN CATCH
         IF @@TRANCOUNT > 0
             ROLLBACK TRANSACTION;
-        
-        PRINT '';
+
         PRINT 'ERROR AL CREAR ESTRUCTURA:';
         PRINT 'Mensaje: ' + ERROR_MESSAGE();
         PRINT 'Línea: ' + CAST(ERROR_LINE() AS VARCHAR(10));
-        PRINT 'Procedimiento: ' + ISNULL(ERROR_PROCEDURE(), 'N/A');
-        
+        PRINT 'Procedimiento: ' + ISNULL(ERROR_PROCEDURE(), 'N/A');   
         THROW;
     END CATCH
 END;
 GO
-
 exec SP_CrearTablasYSchemas

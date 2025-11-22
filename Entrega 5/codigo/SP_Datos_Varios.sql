@@ -58,7 +58,7 @@ BEGIN
             SELECT 1 FROM Consorcio c 
             WHERE c.razon_social = t.Nombre_Consorcio
         );
-        
+     
         -- Tabla temporal para Proveedores
         IF OBJECT_ID('tempdb..#TempProveedores') IS NOT NULL 
             DROP TABLE #TempProveedores;
@@ -85,11 +85,18 @@ BEGIN
         EXEC sp_executesql @SQLProveedores;
         
         -- Insertar en tabla Proveedor
-        INSERT INTO Proveedor (razon_social, cuenta)
+        INSERT INTO Proveedor (razon_social, cuenta, id_tipo_servicio)
         SELECT DISTINCT
             TRIM(t.Nombre_Detalle), 
-            TRIM(t.Referencia)
+            TRIM(t.Referencia),
+            s.id
         FROM #TempProveedores t
+        JOIN Tipo_Servicio s ON 
+    (TRIM(t.Nombre_Detalle) = 'AYSA' AND s.descripcion = 'SERVICIOS PUBLICOS - Agua')
+    OR
+    ((TRIM(t.Nombre_Detalle) = 'EDESUR' OR TRIM(t.Nombre_Detalle) = 'EDENOR') AND s.descripcion = 'SERVICIOS PUBLICOS - Luz')
+    OR
+    (TRIM(t.Nombre_Detalle) NOT IN ('AYSA', 'EDESUR', 'EDENOR') AND TRIM(t.Tipo_Gasto) = s.descripcion)
         WHERE TRIM(t.Nombre_Detalle) IS NOT NULL 
             AND NOT EXISTS (
                 SELECT 1 
@@ -98,7 +105,17 @@ BEGIN
                     TRIM(p.razon_social) = TRIM(t.Nombre_Detalle) 
                     AND ISNULL(p.cuenta, '') = ISNULL(TRIM(t.Referencia), '')
             );
-            -- Insertar en tabla Proveedor_Consorcio
+
+
+            Insert INTO Proveedor (razon_social, id_tipo_servicio)
+            Select
+            'Proveedor de Gastos Generales',
+            t.id
+            From Tipo_Servicio t
+            where t.descripcion = 'GASTOS GENERALES' AND NOT EXISTS (
+            SELECT 1 FROM Proveedor p WHERE p.razon_social = 'Proveedor de Gastos Generales'
+            );
+
         INSERT INTO Proveedor_Consorcio (id_consorcio, id_proveedor)
         SELECT DISTINCT 
             c.id,
@@ -133,6 +150,22 @@ BEGIN
             SELECT 1 FROM Proveedor_Consorcio pc 
             WHERE pc.id_consorcio = c.id AND pc.id_proveedor = p.id
         );
+
+
+        INSERT INTO Proveedor_Consorcio (id_consorcio, id_proveedor)
+        SELECT 
+            c.id AS id_consorcio, 
+            (
+                SELECT p.id 
+                FROM Proveedor p 
+                WHERE p.razon_social = 'Proveedor de Gastos Generales'
+            ) AS id_proveedor
+        FROM Consorcio c
+        WHERE NOT EXISTS (
+                SELECT 1 FROM Proveedor_Consorcio pc WHERE pc.id_consorcio = c.id
+                  AND pc.id_proveedor = (
+                      SELECT p2.id FROM Proveedor p2 WHERE p2.razon_social = 'Proveedor de Gastos Generales')
+            );
         COMMIT TRANSACTION;
         
     END TRY
