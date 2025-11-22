@@ -152,12 +152,18 @@ BEGIN
         JOIN Proveedor_Consorcio pc ON pc.id_proveedor = p.id and pn.idConsorcio = pc.id_consorcio
         WHERE pn.IdProveedor IS NULL;
 
+        Insert into Expensa (id_consorcio, anio, mes)
+        Select t.idConsorcio, t.Anio, t.MesNumero
+        From #TempServicios t WHERE t.IdConsorcio IS NOT NULL
+        AND NOT EXISTS (SELECT 1 FROM Expensa e WHERE e.id_consorcio = t.IdConsorcio AND e.anio = t.Anio AND e.mes = t.MesNumero);
+
         UPDATE t
         SET t.IdExpensa = e.id
         FROM #TempServicios t
         INNER JOIN Expensa e ON e.id_consorcio = t.IdConsorcio AND e.anio = t.Anio AND e.mes = t.MesNumero
         WHERE t.IdConsorcio IS NOT NULL;
-        
+
+
         WITH NuevosDetalles AS (    
             -- 1. BANCARIOS
             SELECT t.IdExpensa, t.Bancarios AS Importe, pn.IdProveedor FROM #TempServicios t 
@@ -238,4 +244,6 @@ EXEC SP_ImportarServicios
 GO
 
 
-SELECT * Detalle_Expensa
+SELECT * FROM Detalle_Expensa
+
+SELECT * FROM Gasto_Ordinario
