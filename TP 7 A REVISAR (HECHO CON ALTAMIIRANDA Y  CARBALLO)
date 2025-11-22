@@ -1,0 +1,229 @@
+USE Com29002612;
+GO
+IF DATABASE_PRINCIPAL_ID('rol_administrativo_general') IS NULL
+    CREATE ROLE rol_administrativo_general;
+GO
+IF DATABASE_PRINCIPAL_ID('rol_administrativo_bancario') IS NULL
+    CREATE ROLE rol_administrativo_bancario;
+GO
+IF DATABASE_PRINCIPAL_ID('rol_administrativo_operativo') IS NULL
+    CREATE ROLE rol_administrativo_operativo;
+GO
+IF DATABASE_PRINCIPAL_ID('rol_sistemas') IS NULL
+    CREATE ROLE rol_sistemas;
+GO
+GRANT SELECT, INSERT, UPDATE ON dbo.UF TO rol_administrativo_general;
+GRANT SELECT, INSERT, UPDATE ON dbo.Persona_UF TO rol_administrativo_general;
+GRANT SELECT, INSERT, UPDATE ON dbo.Persona TO rol_administrativo_general;
+GRANT SELECT ON dbo.Consorcio TO rol_administrativo_general;
+GRANT SELECT ON dbo.Tipo_adicional TO rol_administrativo_general;
+GRANT SELECT ON dbo.Adicionales TO rol_administrativo_general;
+GRANT SELECT ON dbo.Estado_cuenta TO rol_administrativo_general;
+GRANT SELECT ON dbo.Estado_financiero TO rol_administrativo_general;
+GRANT SELECT ON dbo.Expensa TO rol_administrativo_general;
+GRANT SELECT ON dbo.Detalle_Expensa TO rol_administrativo_general;
+GRANT SELECT ON dbo.Gasto_Ordinario TO rol_administrativo_general;
+GRANT SELECT ON dbo.Gasto_Extraordinario TO rol_administrativo_general;
+GRANT EXECUTE ON SCHEMA::reportes TO rol_administrativo_general;
+GO
+GRANT SELECT, INSERT, UPDATE ON dbo.Pago TO rol_administrativo_bancario;
+GRANT EXECUTE ON dbo.SP_ImportarPagosBancarios TO rol_administrativo_bancario;
+GRANT EXECUTE ON dbo.SP_AsociarPago TO rol_administrativo_bancario;
+GRANT SELECT ON dbo.Estado_cuenta TO rol_administrativo_bancario;
+GRANT SELECT ON dbo.Persona_UF TO rol_administrativo_bancario;
+GRANT SELECT ON dbo.UF TO rol_administrativo_bancario;
+GRANT SELECT ON dbo.Estado_financiero TO rol_administrativo_bancario;
+GRANT SELECT ON dbo.Expensa TO rol_administrativo_bancario;
+GRANT SELECT ON dbo.Detalle_Expensa TO rol_administrativo_bancario;
+GRANT EXECUTE ON SCHEMA::reportes TO rol_administrativo_bancario;
+GO
+GRANT SELECT, INSERT, UPDATE ON dbo.UF TO rol_administrativo_operativo;
+GRANT SELECT, INSERT, UPDATE ON dbo.Persona_UF TO rol_administrativo_operativo;
+GRANT SELECT, INSERT, UPDATE ON dbo.Persona TO rol_administrativo_operativo;
+GRANT SELECT ON dbo.Consorcio TO rol_administrativo_operativo;
+GRANT SELECT ON dbo.Tipo_adicional TO rol_administrativo_operativo;
+GRANT SELECT ON dbo.Adicionales TO rol_administrativo_operativo;
+GRANT SELECT ON dbo.Estado_cuenta TO rol_administrativo_operativo;
+GRANT SELECT ON dbo.Estado_financiero TO rol_administrativo_operativo;
+GRANT SELECT ON dbo.Expensa TO rol_administrativo_operativo;
+GRANT SELECT ON dbo.Detalle_Expensa TO rol_administrativo_operativo;
+GRANT SELECT ON dbo.Gasto_Ordinario TO rol_administrativo_operativo;
+GRANT SELECT ON dbo.Gasto_Extraordinario TO rol_administrativo_operativo;
+GRANT EXECUTE ON SCHEMA::reportes TO rol_administrativo_operativo;
+GO
+GRANT SELECT ON SCHEMA::dbo TO rol_sistemas;
+GRANT EXECUTE ON SCHEMA::reportes TO rol_sistemas;
+GO
+IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = 'consorcio_admin_gral')
+    CREATE LOGIN consorcio_admin_gral WITH PASSWORD = 'C0ns0rc!0@Adm1nG3n3r@l#2024', 
+        CHECK_POLICY = ON, CHECK_EXPIRATION = ON;
+IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = 'consorcio_finanzas')
+    CREATE LOGIN consorcio_finanzas WITH PASSWORD = 'F1n@nz@s&C0ns0rc!0$2024', 
+        CHECK_POLICY = ON, CHECK_EXPIRATION = ON;
+IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = 'consorcio_operador')
+    CREATE LOGIN consorcio_operador WITH PASSWORD = '0p3r@d0r*C0ns0rc!0%2024', 
+        CHECK_POLICY = ON, CHECK_EXPIRATION = ON;
+IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = 'consorcio_sistemas')
+    CREATE LOGIN consorcio_sistemas WITH PASSWORD = 'S!st3m@s+C0ns0rc!0^2024', 
+        CHECK_POLICY = ON, CHECK_EXPIRATION = ON;
+GO
+IF DATABASE_PRINCIPAL_ID('consorcio_admin_gral') IS NULL
+    CREATE USER consorcio_admin_gral FOR LOGIN consorcio_admin_gral;
+IF DATABASE_PRINCIPAL_ID('consorcio_finanzas') IS NULL
+    CREATE USER consorcio_finanzas FOR LOGIN consorcio_finanzas;
+IF DATABASE_PRINCIPAL_ID('consorcio_operador') IS NULL
+    CREATE USER consorcio_operador FOR LOGIN consorcio_operador;
+IF DATABASE_PRINCIPAL_ID('consorcio_sistemas') IS NULL
+    CREATE USER consorcio_sistemas FOR LOGIN consorcio_sistemas;
+GO
+EXEC sp_addrolemember 'rol_administrativo_general', 'consorcio_admin_gral';
+EXEC sp_addrolemember 'rol_administrativo_bancario', 'consorcio_finanzas';
+EXEC sp_addrolemember 'rol_administrativo_operativo', 'consorcio_operador';
+EXEC sp_addrolemember 'rol_sistemas', 'consorcio_sistemas';
+GO
+IF NOT EXISTS (SELECT 1 FROM sys.symmetric_keys WHERE name = '##MS_DatabaseMasterKey##')
+BEGIN
+    CREATE MASTER KEY ENCRYPTION BY PASSWORD = 'Cons0rc10M@sterKey2024!';
+    PRINT 'Master Key creada exitosamente.';
+END
+ELSE
+    PRINT 'Master Key ya existe.';
+GO
+IF NOT EXISTS (SELECT 1 FROM sys.certificates WHERE name = 'Cert_DatosPersonales')
+BEGIN
+    CREATE CERTIFICATE Cert_DatosPersonales
+    WITH SUBJECT = 'Certificado para encriptación de datos personales y bancarios',
+         EXPIRY_DATE = '2030-12-31';
+    PRINT 'Certificado creado exitosamente.';
+END
+ELSE
+    PRINT 'Certificado ya existe.';
+GO
+IF NOT EXISTS (SELECT 1 FROM sys.symmetric_keys WHERE name = 'Key_DatosPersonales')
+BEGIN
+    CREATE SYMMETRIC KEY Key_DatosPersonales
+    WITH ALGORITHM = AES_256
+    ENCRYPTION BY CERTIFICATE Cert_DatosPersonales;
+    PRINT 'Clave simétrica creada exitosamente.';
+END
+ELSE
+    PRINT 'Clave simétrica ya existe.';
+GO
+PRINT 'Agregando columnas encriptadas...';
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.Persona') AND name = 'dni_enc')
+    ALTER TABLE dbo.Persona ADD dni_enc VARBINARY(256) NULL;
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.Persona') AND name = 'email_enc')
+    ALTER TABLE dbo.Persona ADD email_enc VARBINARY(256) NULL;
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.Persona') AND name = 'telefono_enc')
+    ALTER TABLE dbo.Persona ADD telefono_enc VARBINARY(256) NULL;
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.Persona') AND name = 'cbu_cvu_enc')
+    ALTER TABLE dbo.Persona ADD cbu_cvu_enc VARBINARY(256) NULL;
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.Pago') AND name = 'cbu_cvu_origen_enc')
+    ALTER TABLE dbo.Pago ADD cbu_cvu_origen_enc VARBINARY(256) NULL;
+GO
+OPEN SYMMETRIC KEY Key_DatosPersonales
+    DECRYPTION BY CERTIFICATE Cert_DatosPersonales;
+UPDATE p
+SET 
+    dni_enc = EncryptByKey(Key_GUID('Key_DatosPersonales'), CAST(p.dni AS NVARCHAR(50))),
+    email_enc = EncryptByKey(Key_GUID('Key_DatosPersonales'), p.email),
+    telefono_enc = EncryptByKey(Key_GUID('Key_DatosPersonales'), CAST(p.telefono AS NVARCHAR(50))),
+    cbu_cvu_enc = EncryptByKey(Key_GUID('Key_DatosPersonales'), p.cbu_cvu)
+FROM dbo.Persona p
+WHERE p.dni_enc IS NULL;  -- Solo encriptar si no está encriptado
+UPDATE pg
+SET cbu_cvu_origen_enc = EncryptByKey(Key_GUID('Key_DatosPersonales'), pg.cbu_cvu_origen)
+FROM dbo.Pago pg
+WHERE pg.cbu_cvu_origen IS NOT NULL
+  AND pg.cbu_cvu_origen_enc IS NULL;
+CLOSE SYMMETRIC KEY Key_DatosPersonales;
+GO
+UPDATE dbo.Persona
+SET 
+    dni = 0,
+    email = '[CIFRADO]',
+    telefono = 0,
+    cbu_cvu = 'ENC-' + RIGHT('000000000000000000' + CAST(persona_id AS VARCHAR(20)), 18)
+WHERE dni_enc IS NOT NULL;
+UPDATE dbo.Pago
+SET cbu_cvu_origen = 'ENC-' + RIGHT('000000000000000000' + CAST(pago_id AS VARCHAR(20)), 18)
+WHERE cbu_cvu_origen_enc IS NOT NULL;
+GO
+IF OBJECT_ID('dbo.vw_PersonaDescifrada', 'V') IS NOT NULL
+    DROP VIEW dbo.vw_PersonaDescifrada;
+GO
+CREATE VIEW dbo.vw_PersonaDescifrada
+AS
+SELECT 
+    persona_id,
+    nombre,
+    apellido,
+    -- Descifrar DNI
+    CAST(
+        CAST(DecryptByKey(dni_enc) AS NVARCHAR(50)) 
+        AS INT
+    ) AS dni,
+    -- Descifrar Email
+    CAST(DecryptByKey(email_enc) AS VARCHAR(100)) AS email,
+    -- Descifrar Teléfono
+    CAST(
+        CAST(DecryptByKey(telefono_enc) AS NVARCHAR(50)) 
+        AS BIGINT
+    ) AS telefono,
+    -- Descifrar CBU/CVU
+    CAST(DecryptByKey(cbu_cvu_enc) AS VARCHAR(22)) AS cbu_cvu,
+    fecha_alta,
+    fecha_modificacion
+FROM dbo.Persona
+WHERE dni_enc IS NOT NULL;
+GO
+IF OBJECT_ID('dbo.vw_PagoDescifrado', 'V') IS NOT NULL
+    DROP VIEW dbo.vw_PagoDescifrado;
+GO
+CREATE VIEW dbo.vw_PagoDescifrado
+AS
+SELECT 
+    pago_id,
+    fecha_pago,
+    monto,
+    -- Descifrar CBU/CVU origen
+    CAST(DecryptByKey(cbu_cvu_origen_enc) AS VARCHAR(22)) AS cbu_cvu_origen,
+    estado,
+    expensa_id,
+    fecha_importacion
+FROM dbo.Pago
+WHERE cbu_cvu_origen_enc IS NOT NULL;
+GO
+GRANT SELECT ON dbo.vw_PersonaDescifrada TO rol_administrativo_general;
+GRANT SELECT ON dbo.vw_PersonaDescifrada TO rol_administrativo_operativo;
+GRANT SELECT ON dbo.vw_PagoDescifrado TO rol_administrativo_bancario;
+GRANT SELECT ON dbo.vw_PagoDescifrado TO rol_administrativo_general;
+GO
+IF OBJECT_ID('dbo.SP_ConsultarPersonaDescifrada', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.SP_ConsultarPersonaDescifrada;
+GO
+CREATE PROCEDURE dbo.SP_ConsultarPersonaDescifrada
+    @persona_id INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    OPEN SYMMETRIC KEY Key_DatosPersonales
+        DECRYPTION BY CERTIFICATE Cert_DatosPersonales;
+    SELECT 
+        persona_id,
+        nombre,
+        apellido,
+        dni,
+        email,
+        telefono,
+        cbu_cvu,
+        fecha_alta,
+        fecha_modificacion
+    FROM dbo.vw_PersonaDescifrada
+    WHERE (@persona_id IS NULL OR persona_id = @persona_id);
+    CLOSE SYMMETRIC KEY Key_DatosPersonales;
+END;
+GO
+GRANT EXECUTE ON dbo.SP_ConsultarPersonaDescifrada TO rol_administrativo_general;
+GRANT EXECUTE ON dbo.SP_ConsultarPersonaDescifrada TO rol_administrativo_operativo;
+GO
