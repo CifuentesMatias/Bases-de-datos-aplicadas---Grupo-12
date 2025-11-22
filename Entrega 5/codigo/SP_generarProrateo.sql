@@ -52,8 +52,8 @@ BEGIN
 		@anio,
 		@mes,
 		cuf.id_uf,
-		e.monto_ord * (cuf.coef/100) AS ordinarias,
-		e.monto_ext * (cuf.coef/100) AS extraordinarias
+		e.monto_ord * (cuf.coef/100.00) AS ordinarias,
+		e.monto_ext * (cuf.coef/100.00) AS extraordinarias
 	FROM
 		consorcio_uf cuf
 	CROSS JOIN 
