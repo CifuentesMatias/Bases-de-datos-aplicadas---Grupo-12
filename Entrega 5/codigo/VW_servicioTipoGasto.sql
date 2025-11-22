@@ -9,3 +9,4 @@ CREATE VIEW vw_servicioTipoGasto AS
 	JOIN 
 		tipo_gasto tg
 		ON tg.id_tipo_gasto = ts.id_tipo_gasto;
+GO
