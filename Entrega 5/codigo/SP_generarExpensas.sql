@@ -52,23 +52,45 @@ BEGIN
 
 
 
-	DECLARE @esExtraordinaria INT = (SELECT id FROM tipo_gasto WHERE descripcion = 'Extraordinarios');
+	DECLARE @serviciosExtraordinarios TABLE (id INT PRIMARY KEY); 
+	-- inserto los ids de Servicios que son de indole extraordinario
+	INSERT INTO @serviciosExtraordinarios SELECT id_tipo_servicio FROM vw_servicioTipoGasto WHERE descripcion_gasto = 'Extraordinarios';
 
-
-	INSERT INTO expensa (id_consorcio, anio, mes, vencimiento1, vencimiento2, monto_ord, monto_ext)
-	SELECT
-		@id_consorcio,
-		@anio,
-		@mes,
-		DATEADD(day, @dias_venc1, @fecha),
-		DATEADD(day, @dias_venc2, @fecha),  
-		SUM(CASE WHEN id_tipo_gasto <> @esExtraordinaria THEN importe ELSE 0 END), -- AS ordinarias,
-		SUM(CASE WHEN id_tipo_gasto = @esExtraordinaria THEN importe ELSE 0 END) -- AS extraordinarias
+	WITH
+		gastos_periodo AS (SELECT
+								SUM(CASE 
+										WHEN prov.id_tipo_servicio 
+										NOT IN (SELECT id FROM @serviciosExtraordinarios)
+										THEN de.importe 
+										ELSE 0
+								END) AS ordinarias,
+								SUM(CASE 
+										WHEN prov.id_tipo_servicio
+										IN (SELECT id FROM @serviciosExtraordinarios)
+										THEN de.importe 
+										ELSE 0
+								END) AS extraordinarias
+						   FROM 
+						   		detalle_expensa de
+						   JOIN
+						   		proveedor prov
+						   		ON prov.id_proveedor = de.id_proveedor
+						   WHERE 
+						   		de.id_consorcio = @id_consorcio AND 
+						   		de.fecha_factura BETWEEN @fecha_ini AND @fecha_fin)
+	UPDATE e SET
+		e.vencimiento1 = DATEADD(day, @dias_venc1, @fecha),
+		e.vencimiento2 = DATEADD(day, @dias_venc2, @fecha),  
+		e.monto_ord = gp.ordinarias,
+		e.monto_ext = gp.extraordinarias
 	FROM 
-		detalle_expensa
+		expensa e
+	CROSS JOIN
+		gastos_periodo gp
 	WHERE
-		id_consorcio = @id_consorcio AND 
-		fecha_factura BETWEEN @fecha_ini AND @fecha_fin;
+		e.id_consorcio = @id_consorcio AND 
+		e.anio = @anio AND e.mes = @mes;
+
 
 
 	IF @debug = 1
