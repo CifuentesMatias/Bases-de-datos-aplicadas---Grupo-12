@@ -12,8 +12,7 @@ CREATE PROCEDURE sp_reporte1(@nombre_consorcio NVARCHAR(50), @fechaInicio DATE =
 BEGIN
 	SET NOCOUNT ON;
 
-	IF @fechaFin IS NULL
-		SET @fechaFin = GETDATE();
+	IF @fechaFin IS NULL SET @fechaFin = GETDATE();
 
 	DECLARE @id_consorcio INT = (SELECT TOP 1 id_consorcio FROM consorcio WHERE razon_social = @nombre_consorcio);
 
@@ -30,21 +29,45 @@ BEGIN
 
 	EXEC sp_corregirPeriodo @id_consorcio, @fechaInicio OUTPUT, @fechaFin OUTPUT;
 
-	WITH periodo_pagos AS (SELECT 
-							anio,
-							mes,
-							fn_NROSEMANA_MES(DATEFROMPARTS(anio, mes, 1)) AS semana,
-							SUM(pagos_exp_ord) AS ordinarias,
-							SUM(pagos_exp_ext) AS extraordinarias
+	WITH
+		personas_consorcio AS (SELECT
+								  puf.id_uf,
+								  pers.cbu_cvu,
+								  puf.es_propietario
+							   FROM
+								  persona_uf puf
+							   LEFT JOIN
+							   	  persona pers
+							   	  ON pers.id_persona = puf.id_persona
+							   	WHERE
+							   	  puf.id_consorcio = @id_consorcio),
+		pagos_periodo AS (SELECT
+							p.id_uf,
+							p.monto,
+							YEAR(p.fecha_pago) AS anio,
+							MONTH(p.fecha_pago) AS mes,
+							dbo.fn_NROSEMANA_MES(p.fecha_pago) AS semana,
+							pc.es_propietario
 						  FROM 
 						  	pago p
+						  JOIN
+						    personas_consorcio pc
+						    ON pc.cbu_cvu = p.cbu_cvu
 						  WHERE 
-						  	id_consorcio = @id_consorcio AND
-						  	fecha_pago BETWEEN @fechaInicio AND @fechaFin
-						  GROUP BY 
-						  	anio,
-						  	mes,
-						  	semana)
+						  	p.id_consorcio = @id_consorcio AND
+						  	p.fecha_pago BETWEEN @fechaInicio AND @fechaFin), 
+		pagos_segregados AS (SELECT 
+								anio,
+								mes,
+								semana,
+								SUM(CASE WHEN es_propietario = 0 THEN monto ELSE 0 END) AS ordinarias,
+								SUM(CASE WHEN es_propietario = 1 THEN monto ELSE 0 END) AS extraordinarias
+							  FROM
+							  	pagos_periodo
+							  GROUP BY 
+							  	anio,
+							  	mes,
+							  	semana)
 	SELECT
 		@nombre_consorcio AS consorcio, 
 		anio,
@@ -55,7 +78,7 @@ BEGIN
 		AVG(ordinarias + extraordinarias) OVER () AS promedio_periodo,
 		SUM(ordinarias + extraordinarias) OVER (ORDER BY anio, mes, semana) AS acumulado_periodo
 	FROM 
-		periodo_pagos
+		pagos_segregados
 	ORDER BY
 		anio,
 		mes,
