@@ -85,7 +85,7 @@ BEGIN
 		cp.pagos_adelantados as [Pagos expensas adelantadas],
 		ep.monto_ext + ep.monto_ord as [Gastos mes actual],
 		CASE 
-			WHEN cp.saldo_final < 0 THEN CAST(ABS(cp.saldo_final) AS VARCHAR(20))
+			WHEN cp.saldo_final > 0 THEN CAST(ABS(cp.saldo_final) AS VARCHAR(20))
 			ELSE '-'
 		END as [Saldo a favor],
 		cp.saldo_final as [Saldo al cierre]
