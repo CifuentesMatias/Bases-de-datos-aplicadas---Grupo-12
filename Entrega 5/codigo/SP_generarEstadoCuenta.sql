@@ -1,4 +1,4 @@
-CREATE PROCEDURE sp_generarEstadoCuenta(@nombre_consorcio NVARCHAR(50), @debug BIT = 0) AS
+CREATE PROCEDURE sp_generarEstadoCuenta(@nombre_consorcio NVARCHAR(50), @anio INT, @mes INT, @debug BIT = 0) AS
 BEGIN
 	SET NOCOUNT ON;
 
@@ -9,9 +9,16 @@ BEGIN
 		RETURN;
 	END;
 
-	DECLARE @fecha_actual DATE = GETDATE();
-	DECLARE @anio INT = YEAR(@fecha_actual);
-	DECLARE @mes INT = MONTH(@fecha_actual);
+	DECLARE @fecha DATE;
+	IF @anio IS NULL OR @mes IS NULL OR @anio < 2020 OR @mes NOT BETWEEN 1 AND 12
+	BEGIN
+		SET @fecha = GETDATE();
+		SET @anio = YEAR(@fecha);
+		SET @mes = MONTH(@fecha);
+	END;
+	ELSE SET @fecha = DATEADD(day, 20, dbo.fn_5TODIAHABIL(DATEADD(month, 1, DATEFROMPARTS(@anio, @mes, 1))));
+
+
 	DECLARE @anio_del_mes_anterior INT = @anio;
 	DECLARE @mes_anterior INT = @mes - 1;
 	IF @mes_anterior = 0
@@ -23,7 +30,7 @@ BEGIN
 	DECLARE @vencimiento2 DATE = (SELECT vencimiento2 FROM expensa WHERE id_consorcio = @id_consorcio AND anio = @anio AND mes = @mes);
 
 	-- usamos el mes pasado
-	IF @debug = 0 AND (@vencimiento2 IS NULL OR @fecha_actual < @vencimiento2)
+	IF @debug = 0 AND (@vencimiento2 IS NULL OR @fecha < @vencimiento2)
 	BEGIN
 		SET @mes = @mes - 1;
 		IF @mes = 0
@@ -72,15 +79,25 @@ BEGIN
 		uc.coef as [%],
 		uc.depto as [Piso-Depto],
 		ur.propietario as [Propietario],
+
 		pa.saldo_anterior as [Saldo anterior],
 		pr.pagos_recibidos as [Pagos recibidos],
-		pa.saldo_anterior - pr.pagos_recibidos as [Deuda],
-		pr.saldo_final - pr.monto_ord - pr.monto_coc - pr.monto_bau - pr.monto_ext - pa.saldo_anterior + pr.pagos_recibidos as [Intereses por mora], -- se puede inferir
+		CASE 
+			WHEN GREATEST(pa.saldo_anterior - pr.pagos_recibidos, 0) > 0 
+			THEN CAST((pa.saldo_anterior - pr.pagos_recibidos) AS VARCHAR(20))
+			ELSE '-'
+		END as [Deuda],
+		CASE 
+			WHEN LEAST(pa.saldo_anterior - pr.pagos_recibidos, 0) < 0 
+			THEN CAST(ABS(pa.saldo_anterior - pr.pagos_recibidos) AS VARCHAR(20))
+			ELSE '-'
+		END as [Saldo a favor],
+		pr.saldo_final - pr.monto_ord - pr.monto_ext - pa.saldo_anterior + pr.pagos_recibidos as [Intereses por mora], -- se puede inferir
 		pr.monto_ord as [Expensas ordinarias],
-		pr.monto_coc as [Cocheras],
-		pr.monto_bau as [Bauleras],
 		pr.monto_ext as [Expensas extraordinarias],
-		pr.saldo_final as [Total a Pagar],
+		pr.monto_ord + pr.monto_ext as [Total a pagar],
+		pr.saldo_final as [Saldo final],
+
 		CASE 
 			WHEN ur.prop_email <> '' THEN ur.prop_email
 			WHEN ur.prop_tel <> '' THEN ur.prop_tel
@@ -100,7 +117,7 @@ BEGIN
 		Uf_porConsorcio uc
 		ON uc.id_uf = pr.id_uf
 	JOIN
-		fn_ultimoResidentes(@id_consorcio, @fecha_actual) ur
+		fn_ultimoResidentes(@id_consorcio, @fecha) ur
 		ON ur.id_uf = pr.id_uf
 	WHERE
 		pr.id_consorcio = @id_consorcio AND
