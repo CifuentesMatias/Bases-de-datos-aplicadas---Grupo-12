@@ -29,17 +29,27 @@ BEGIN
 	END;
 
 
+	DECLARE @temp TABLE
+	(
+		deuda NUMERIC(20,2),
+		propietario VARCHAR(50),
+		prop_dni INT,
+		prop_email VARCHAR(255),
+		prop_tel CHAR(16)
+	); 
 
 	WITH
 		-- busco las uf que SOLO deban
 		uf_morosa AS (SELECT
 					   		id_uf,
+					   		anio,
+							mes,
 					 		saldo_final
 					   FROM 
 					 		prorateo
 					   WHERE 
 					 		id_consorcio = @id_consorcio AND
-							anio = YEAR(@fechaFin) AND mes = MONTH(@fechaFin) AND
+							anio <= YEAR('2025-1-1') AND
 							saldo_final > 0),
 
 		-- me piden 3 personas morosas, entonces puede pasar que la misma persona deba dos departamentos
@@ -58,10 +68,9 @@ BEGIN
 						ur.propietario,
 					    ur.prop_dni,
 					    ur.prop_email,
-					    ur.prop_tel) 
+					    ur.prop_tel)
+	INSERT INTO @temp(deuda, propietario, prop_dni, prop_email, prop_tel) 
 	SELECT TOP 3
-		@nombre_consorcio AS consorcio,
-		@fechaFin AS fCalculo,
 		deuda,
 		propietario,
 		prop_dni,
@@ -70,9 +79,9 @@ BEGIN
 	FROM 
 		morosos
 	ORDER BY
-	 	deuda DESC;
+		deuda DESC;
 
-	SELECT TOP 3
+	SELECT
 		@nombre_consorcio AS consorcio,
 		@fechaFin AS fCalculo,
 		deuda,
@@ -81,7 +90,20 @@ BEGIN
 		prop_email,
 		prop_tel
 	FROM 
-		morosos
+		@temp
+	ORDER BY
+		deuda DESC;
+
+	SELECT
+		@nombre_consorcio AS consorcio,
+		@fechaFin AS fCalculo,
+		deuda,
+		propietario,
+		prop_dni,
+		prop_email,
+		prop_tel
+	FROM 
+		@temp
 	ORDER BY
 		deuda DESC
 	FOR XML 
