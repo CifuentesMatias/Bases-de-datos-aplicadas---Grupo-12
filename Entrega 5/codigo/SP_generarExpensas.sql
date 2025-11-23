@@ -43,14 +43,6 @@ BEGIN
                       						   				 MONTH(@fecha),
                       										 1));
 
-	IF EXISTS (SELECT 1 FROM pago WHERE (id_consorcio IS NULL OR id_uf IS NULL) AND
-										(fecha_pago BETWEEN @fecha_ini AND @fecha_fin))
-	BEGIN
-		RAISERROR('error.. existen pagos que no estan asociados!', 16, 4);
-		RETURN;
-	END;
-
-
 
 	DECLARE @serviciosExtraordinarios TABLE (id INT PRIMARY KEY); 
 	-- inserto los ids de Servicios que son de indole extraordinario
