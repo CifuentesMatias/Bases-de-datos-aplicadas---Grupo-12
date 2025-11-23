@@ -1,3 +1,14 @@
+/** Reporte 3 **
+	Presente un cuadro cruzado con la recaudación total desagregada según su procedencia
+	(ordinario, extraordinario, etc.) según el periodo
+	
+	//quizas me pidan algo asi
+	CONSORCIO		 ANIO	MES 	ORDINARIO 	EXTRAORDINARIO 	   
+	altos del oeste  2020	12   	20      	1000			
+	altos del oeste  2020	11  	20      	1000			
+	............
+	altos del oeste  2020	1   	20      	1000
+*/
 CREATE PROCEDURE sp_reporte3(@nombre_consorcio NVARCHAR(50), @fechaInicio DATE = '2020-1-1', @fechaFin DATE = NULL) AS
 BEGIN
 	SET NOCOUNT ON;
