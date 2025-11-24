@@ -1,3 +1,17 @@
+IF DB_ID('Com2900G12') IS NULL
+    CREATE DATABASE Com2900G12 COLLATE Modern_Spanish_CI_AS;
+GO
+
+USE Com2900G12;
+GO
+
+
+
+IF OBJECT_ID('sp_generarExpensas') IS NOT NULL
+    DROP PROCEDURE sp_generarExpensas;
+GO
+
+
 CREATE PROCEDURE sp_generarExpensas(@nombre_consorcio NVARCHAR(50), @anio INT, @mes INT, @dias_venc1 INT = 10, @dias_venc2 INT = 20, @debug BIT = 0) AS
 BEGIN
 	SET NOCOUNT ON;
@@ -46,37 +60,30 @@ BEGIN
 
 	DECLARE @serviciosExtraordinarios TABLE (id INT PRIMARY KEY); 
 	-- inserto los ids de Servicios que son de indole extraordinario
-	INSERT INTO @serviciosExtraordinarios SELECT id_tipo_servicio FROM vw_servicioTipoGasto WHERE descripcion_gasto = 'Extraordinarios';
+	INSERT INTO @serviciosExtraordinarios SELECT id_tipo_servicio FROM vw_servicioTipoGasto WHERE descripcion_gasto = 'Extraordinario';
 
-	WITH
-		gastos_periodo AS (SELECT
-								SUM(CASE 
-										WHEN prov.id_tipo_servicio 
-										NOT IN (SELECT id FROM @serviciosExtraordinarios)
-										THEN de.importe 
-										ELSE 0
-								END) AS ordinarias,
-								SUM(CASE 
-										WHEN prov.id_tipo_servicio
-										IN (SELECT id FROM @serviciosExtraordinarios)
-										THEN de.importe 
-										ELSE 0
-								END) AS extraordinarias
-						   FROM 
-						   		detalle_expensa de
-						   JOIN
-						   		proveedor prov
-						   		ON prov.id = de.id_proveedor
-						   WHERE 
-						   		de.id_consorcio = @id_consorcio AND 
-						   		de.fecha_factura BETWEEN @fecha_ini AND @fecha_fin)
-	UPDATE e SET
+	WITH gastos_periodo AS (
+		SELECT
+			ISNULL(SUM(CASE WHEN se.id IS NULL THEN de.importe ELSE 0 END), 0) AS ordinarias,
+			ISNULL(SUM(CASE WHEN se.id IS NOT NULL THEN de.importe ELSE 0 END), 0) AS extraordinarias
+		FROM 
+			Detalle_Expensa de
+		JOIN Proveedor prov ON prov.id = de.id_proveedor
+		JOIN Expensa ex_rel ON ex_rel.id = de.id_expensa
+		LEFT JOIN 
+			@serviciosExtraordinarios se ON prov.id_tipo_servicio = se.id
+		WHERE 
+			ex_rel.id_consorcio = @id_consorcio AND 
+			de.fecha_factura BETWEEN @fecha_ini AND @fecha_fin
+	)
+	UPDATE e 
+	SET
 		e.vence1 = DATEADD(day, @dias_venc1, @fecha),
 		e.vence2 = DATEADD(day, @dias_venc2, @fecha),  
 		e.monto_ord = gp.ordinarias,
 		e.monto_ext = gp.extraordinarias
 	FROM 
-		expensa e
+		Expensa e
 	CROSS JOIN
 		gastos_periodo gp
 	WHERE
@@ -94,4 +101,4 @@ BEGIN
 END; 
 GO
 
--- AGREGAR COLUMNAS A DETALLE_EXPENSA: id_consorcio, fecha_factura
+--EXEC sp_generarExpensas @nombre_consorcio = 'Azcuenaga', @anio = 2024, @mes = 5, @dias_venc1 = 10, @dias_venc2 = 20, @debug = 1;--para probar

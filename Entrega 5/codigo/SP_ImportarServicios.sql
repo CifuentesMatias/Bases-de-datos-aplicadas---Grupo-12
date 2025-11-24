@@ -164,49 +164,85 @@ BEGIN
         WHERE t.IdConsorcio IS NOT NULL;
 
 
-        WITH NuevosDetalles AS (    
+        WITH NuevosDetalles AS (   
             -- 1. BANCARIOS
-            SELECT t.IdExpensa, t.Bancarios AS Importe, pn.IdProveedor FROM #TempServicios t 
+            SELECT t.IdExpensa, t.Bancarios AS Importe, pn.IdProveedor,
+                DATEADD(day, 
+                    FLOOR(RAND(CHECKSUM(NEWID())) * (DAY(EOMONTH(DATEFROMPARTS(t.Anio, t.MesNumero, 1))) - 1)),
+                    DATEFROMPARTS(t.Anio, t.MesNumero, 1)
+                ) AS FechaFactura FROM #TempServicios t 
             JOIN #ProveedoresNecesarios pn ON t.IdConsorcio = pn.IdConsorcio AND pn.TipoProveedor = 'GASTOS BANCARIOS'
             WHERE t.IdExpensa IS NOT NULL AND t.Bancarios > 0 AND pn.IdProveedor IS NOT NULL
             UNION ALL
             -- 2. LIMPIEZA
-            SELECT t.IdExpensa, t.Limpieza AS Importe, pn.IdProveedor FROM #TempServicios t 
+            SELECT t.IdExpensa, t.Limpieza AS Importe, pn.IdProveedor,
+                DATEADD(day, 
+                    FLOOR(RAND(CHECKSUM(NEWID())) * (DAY(EOMONTH(DATEFROMPARTS(t.Anio, t.MesNumero, 1))) - 1)),
+                    DATEFROMPARTS(t.Anio, t.MesNumero, 1)
+                ) AS FechaFactura FROM #TempServicios t 
             JOIN #ProveedoresNecesarios pn ON t.IdConsorcio = pn.IdConsorcio AND pn.TipoProveedor = 'GASTOS DE LIMPIEZA'
             WHERE t.IdExpensa IS NOT NULL AND t.Limpieza > 0 AND pn.IdProveedor IS NOT NULL
             UNION ALL
             -- 3. ADMINISTRACION
-            SELECT t.IdExpensa, t.Administracion AS Importe, pn.IdProveedor FROM #TempServicios t 
+            SELECT t.IdExpensa, t.Administracion AS Importe, pn.IdProveedor,
+                DATEADD(day, 
+                    FLOOR(RAND(CHECKSUM(NEWID())) * (DAY(EOMONTH(DATEFROMPARTS(t.Anio, t.MesNumero, 1))) - 1)),
+                    DATEFROMPARTS(t.Anio, t.MesNumero, 1)
+                ) AS FechaFactura FROM #TempServicios t 
             JOIN #ProveedoresNecesarios pn ON t.IdConsorcio = pn.IdConsorcio AND pn.TipoProveedor = 'GASTOS DE ADMINISTRACION'
             WHERE t.IdExpensa IS NOT NULL AND t.Administracion > 0 AND pn.IdProveedor IS NOT NULL
             UNION ALL
             -- 4. SEGUROS
-            SELECT t.IdExpensa, t.Seguros AS Importe, pn.IdProveedor FROM #TempServicios t 
+            SELECT t.IdExpensa, t.Seguros AS Importe, pn.IdProveedor,
+                DATEADD(day, 
+                    FLOOR(RAND(CHECKSUM(NEWID())) * (DAY(EOMONTH(DATEFROMPARTS(t.Anio, t.MesNumero, 1))) - 1)),
+                    DATEFROMPARTS(t.Anio, t.MesNumero, 1)
+                ) AS FechaFactura FROM #TempServicios t 
             JOIN #ProveedoresNecesarios pn ON t.IdConsorcio = pn.IdConsorcio AND pn.TipoProveedor = 'SEGUROS'
             WHERE t.IdExpensa IS NOT NULL AND t.Seguros > 0 AND pn.IdProveedor IS NOT NULL
             UNION ALL
             -- 5. LUZ
-            SELECT t.IdExpensa, t.ServiciosLuz AS Importe, pn.IdProveedor FROM #TempServicios t 
+            SELECT t.IdExpensa, t.ServiciosLuz AS Importe, pn.IdProveedor,
+                DATEADD(day, 
+                    FLOOR(RAND(CHECKSUM(NEWID())) * (DAY(EOMONTH(DATEFROMPARTS(t.Anio, t.MesNumero, 1))) - 1)),
+                    DATEFROMPARTS(t.Anio, t.MesNumero, 1)
+                ) AS FechaFactura FROM #TempServicios t 
             JOIN #ProveedoresNecesarios pn ON t.IdConsorcio = pn.IdConsorcio AND pn.TipoProveedor = 'SERVICIOS PUBLICOS - Luz'
             WHERE t.IdExpensa IS NOT NULL AND t.ServiciosLuz > 0 AND pn.IdProveedor IS NOT NULL
             UNION ALL
             -- 6. AGUA
-            SELECT t.IdExpensa, t.ServiciosAgua AS Importe, pn.IdProveedor FROM #TempServicios t 
+            SELECT t.IdExpensa, t.ServiciosAgua AS Importe, pn.IdProveedor,
+                DATEADD(day, 
+                    FLOOR(RAND(CHECKSUM(NEWID())) * (DAY(EOMONTH(DATEFROMPARTS(t.Anio, t.MesNumero, 1))) - 1)),
+                    DATEFROMPARTS(t.Anio, t.MesNumero, 1)
+                ) AS FechaFactura FROM #TempServicios t 
             JOIN #ProveedoresNecesarios pn ON t.IdConsorcio = pn.IdConsorcio AND pn.TipoProveedor = 'SERVICIOS PUBLICOS - Agua'
             WHERE t.IdExpensa IS NOT NULL AND t.ServiciosAgua > 0 AND pn.IdProveedor IS NOT NULL
             UNION ALL
             -- 7. GASTOS GENERALES
-            SELECT t.IdExpensa, t.GastosGenerales AS Importe, pn.IdProveedor FROM #TempServicios t 
+            SELECT t.IdExpensa, t.GastosGenerales AS Importe, pn.IdProveedor,
+                DATEADD(day, 
+                    FLOOR(RAND(CHECKSUM(NEWID())) * (DAY(EOMONTH(DATEFROMPARTS(t.Anio, t.MesNumero, 1))) - 1)),
+                    DATEFROMPARTS(t.Anio, t.MesNumero, 1)
+                ) AS FechaFactura FROM #TempServicios t 
             JOIN #ProveedoresNecesarios pn ON t.IdConsorcio = pn.IdConsorcio AND pn.TipoProveedor = 'GASTOS GENERALES'
             WHERE t.IdExpensa IS NOT NULL AND t.GastosGenerales > 0 AND pn.IdProveedor IS NOT NULL
         )
-    -- Inserción final con el filtro de duplicados
-    INSERT INTO Detalle_Expensa (id_expensa, importe, id_proveedor)
-    SELECT nd.IdExpensa, nd.Importe, nd.IdProveedor FROM NuevosDetalles nd
-    WHERE NOT EXISTS (
-        SELECT 1 FROM Detalle_Expensa de
-        WHERE de.id_expensa = nd.IdExpensa AND de.id_proveedor = nd.IdProveedor AND de.importe = nd.Importe
-    );
+        -- Inserción final en Detalle_Expensa
+        INSERT INTO Detalle_Expensa (id_expensa, importe, id_proveedor, fecha_factura)
+        SELECT 
+            nd.IdExpensa, 
+            nd.Importe, 
+            nd.IdProveedor, 
+            nd.FechaFactura
+        FROM NuevosDetalles nd
+        WHERE NOT EXISTS (
+            SELECT 1 
+            FROM Detalle_Expensa de
+            WHERE de.id_expensa = nd.IdExpensa
+              AND de.id_proveedor = nd.IdProveedor
+              AND de.importe = nd.Importe
+        );
         
         -- 9. Generar Gasto_Ordinario
         INSERT INTO Gasto_Ordinario (id_gasto, nro_factura)
@@ -247,3 +283,4 @@ GO
 SELECT * FROM Detalle_Expensa
 
 SELECT * FROM Gasto_Ordinario
+SELECT * FROM Expensa
