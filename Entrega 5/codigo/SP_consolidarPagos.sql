@@ -2,7 +2,7 @@ CREATE PROCEDURE sp_consolidarPagos(@nombre_consorcio NVARCHAR(50), @anio INT, @
 BEGIN
 	SET NOCOUNT ON;
 
-	DECLARE @id_consorcio INT = (SELECT id_consorcio FROM consorcio WHERE razon_social = @nombre_consorcio);
+	DECLARE @id_consorcio INT = (SELECT id FROM consorcio WHERE razon_social = @nombre_consorcio);
 	IF @id_consorcio IS NULL
 	BEGIN
 		RAISERROR('Ese consorcio no existe', 16, 1);
@@ -29,8 +29,8 @@ BEGIN
 
 	DECLARE @vencimiento1 DATE, @vencimiento2 DATE;
 	SELECT 
-		@vencimiento1 = vencimiento1,
-		@vencimiento2 = vencimiento2
+		@vencimiento1 = vence1,
+		@vencimiento2 = vence2
 	FROM 
 		expensa 
 	WHERE 
@@ -53,7 +53,7 @@ BEGIN
 	END;
 
 	DECLARE @5todihabil_anterior DATE = dbo.fn_5TODIAHABIL(DATEFROMPARTS(@anio_del_mes_anterior, @mes_anterior, 1));
-	DECLARE @vencimiento2_anterior DATE = (SELECT vencimiento2 FROM expensa
+	DECLARE @vencimiento2_anterior DATE = (SELECT vence2 FROM expensa
 										   WHERE id_consorcio = @id_consorcio AND
 	  									   anio = @anio_del_mes_anterior AND mes = @mes_anterior);
 	IF @vencimiento2_anterior IS NULL
@@ -99,57 +99,57 @@ BEGIN
 
 		-- PAGOS HASTA 5to dia habil
 		pagos_anteriores AS (SELECT 
-						        uf.id_uf,
+						        uf.id,
 						        SUM(COALESCE(pp.pagos, 0)) AS pagos_5todia
 						     FROM
-						     	unidad_funcional uf
+						     	UF uf
 						     LEFT JOIN
 						    	pagos_periodo pp
-						    	ON pp.id_uf = uf.id_uf
+						    	ON pp.id_uf = uf.id
 						     	AND pp.fecha_pago >= @vencimiento2_anterior 
 						    	AND pp.fecha_pago <= @5todihabil_anterior
 						     GROUP BY --puede haber mas de un pago
-						    	uf.id_uf),
+						    	uf.id),
 
 		-- PAGOS HASTA 1er VENC
 		pagos_venc1 AS (SELECT 
-				        	uf.id_uf,
+				        	uf.id,
 				        	SUM(COALESCE(pp.pagos, 0)) AS pagos_entermino
 				    	FROM
-					     	unidad_funcional uf
+					     	UF uf
 					    LEFT JOIN
 					    	pagos_periodo pp
-					    	ON pp.id_uf = uf.id_uf
+					    	ON pp.id_uf = uf.id
 					    	AND pp.fecha_pago > @5todihabil_anterior 
 					    	AND pp.fecha_pago <= @vencimiento1
 					    GROUP BY --puede haber mas de un pago
-						    uf.id_uf),
+						    uf.id),
 
 		-- PAGOS HASTA 2do VENC
 		pagos_venc2 AS (SELECT 
-				        	uf.id_uf,
+				        	uf.id,
 				        	SUM(COALESCE(pp.pagos, 0)) AS pagos_entre_vtos
 				    	FROM
-					     	unidad_funcional uf
+					     	UF uf
 					    LEFT JOIN
 					    	pagos_periodo pp
-					    	ON pp.id_uf = uf.id_uf
+					    	ON pp.id_uf = uf.id
 					    	AND pp.fecha_pago > @vencimiento1
 					    	AND pp.fecha_pago < @vencimiento2
 					    GROUP BY --puede haber mas de un pago
-						    uf.id_uf),
+						    uf.id),
 
 
 		-- PERIODO ANTERIOR (para el caso de la primera vez, es seguro que no exista prorateo anterior)
 		prorateo_anterior AS (SELECT 
-						        uf.id_uf,
+						        uf.id,
 						        COALESCE(p.saldo_final, 0) AS saldo_anterior
 						      FROM 
-						      	unidad_funcional uf
+						      	UF uf
 						      LEFT JOIN 
-						      	prorateo p
+						      	Estado_de_cuenta p
 						        ON p.id_consorcio = uf.id_consorcio
-						        AND p.id_uf = uf.id_uf
+						        AND p.id_uf = uf.id
 						        AND p.anio = @anio_del_mes_anterior
 						        AND p.mes = @mes_anterior
 						      WHERE 
@@ -169,9 +169,9 @@ BEGIN
 		-- PERIODO ACTUAL (todas las uf existen)
 		prorateo_periodo AS (SELECT 
 						        id_uf,
-						        monto_ext + monto_ord AS gastos_mes
+						        gasto_ext + gasto_ord AS gastos_mes
 						     FROM 
-						    	prorateo
+						    	Estado_de_cuenta
 						     WHERE 
 						    	id_consorcio = @id_consorcio AND
 						    	anio = @anio AND mes = @mes),
@@ -262,9 +262,9 @@ BEGIN
 
 	UPDATE p SET 
 		p.saldo_final = ti.saldo_final, --este sera el saldo que se utilizara como saldo anterior para proximo calculo
-		p.pagos_recibidos = ti.pagos_totales
+		p.pagos_registrados = ti.pagos_totales
 	FROM 
-	    prorateo p
+	    Estado_de_cuenta p
 	JOIN 
 	    @tabla_intermedia ti
 	    ON ti.id_uf = p.id_uf
@@ -276,14 +276,14 @@ BEGIN
 	WITH
 		-- PERIODO ANTERIOR (para el caso de la primera vez, es seguro que no exista prorateo anterior)
 		prorateo_anterior AS (SELECT 
-						        uf.id_uf,
+						        uf.id,
 						        COALESCE(p.saldo_final, 0) AS saldo_anterior
 						      FROM 
-						      	unidad_funcional uf
+						      	UF uf
 						      LEFT JOIN 
-						      	prorateo p
+						      	Estado_de_cuenta p
 						        ON p.id_consorcio = uf.id_consorcio
-						        AND p.id_uf = uf.id_uf
+						        AND p.id_uf = uf.id
 						        AND p.anio = @anio_del_mes_anterior
 						        AND p.mes = @mes_anterior
 						      WHERE 
@@ -345,7 +345,7 @@ BEGIN
 		calculo_caja AS (SELECT 
 							COALESCE(MAX(saldo_final), 0) AS saldo_anterior -- esta caja podria ser null para la primera creacion de expensa
 						FROM 
-						  	caja 
+						  	Estado_financiero 
 						WHERE 
 						  	id_consorcio = @id_consorcio AND
 		  				  	anio = @anio_del_mes_anterior AND mes = @mes_anterior),
@@ -357,7 +357,7 @@ BEGIN
 						  		id_consorcio = @id_consorcio AND
 								anio = @anio AND mes = @mes)
 
-	INSERT INTO caja(id_consorcio, anio, mes, pagos_adeudados, pagos_entermino, pagos_adelantados, saldo_final)
+	INSERT INTO Estado_financiero(id_consorcio, anio, mes, pagos_adeudados, pagos_entermino, pagos_adelantados, saldo_final)
 	SELECT
 	    @id_consorcio,
 	    @anio,
@@ -383,7 +383,7 @@ BEGIN
 	    SELECT
 	    	* 
 	    FROM
-	    	caja
+	    	Estado_financiero
 	    WHERE
 	    	id_consorcio = @id_consorcio AND
 	    	anio = @anio AND mes = @mes;

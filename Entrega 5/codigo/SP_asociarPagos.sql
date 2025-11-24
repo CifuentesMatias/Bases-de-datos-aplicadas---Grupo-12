@@ -1,4 +1,4 @@
-CREATE PROCEDURE sp_asociarPagos(@debug BIT = 0) AS
+CREATE or ALTER PROCEDURE sp_asociarPagos(@debug BIT = 0) AS
 BEGIN
 	SET NOCOUNT ON;
 
@@ -21,18 +21,18 @@ BEGIN
 						   	   FROM
 						   			persona_uf
 						   	   WHERE
-						   			fecha_alta <= GETDATE()),
+						   			fecha <= GETDATE()),
 		uf_persona AS (SELECT
 							pc.id_consorcio,
 							pc.id_uf,
-							pers.id_persona,
+							pers.id,
 							pc.es_propietario,
-							pers.cbu_cvu
+							pers.cvu_cbu
 					   FROM
 					   	 	persona pers
 					   JOIN 
 					   		personas_consorcio pc
-					   		ON pc.id_persona = pers.id_persona)
+					   		ON pc.cvu_cbu = pers.cvu_cbu) -- CAMBIÓ
 	UPDATE p SET
 		p.id_consorcio = ufp.id_consorcio,
 		p.id_uf = ufp.id_uf
@@ -40,7 +40,7 @@ BEGIN
 		pago p
 	JOIN
 		uf_persona ufp
-		ON ufp.cbu_cvu = p.cbu_cvu
+		ON ufp.cvu_cbu = p.cbu_cvu -- CAMBIÓ
 	WHERE
 		p.id_consorcio IS NULL;
 
@@ -52,3 +52,5 @@ BEGIN
 	END;
 END;
 GO
+
+-- AGREGAR A LA TABLA PAGO: id_consorcio, id_uf

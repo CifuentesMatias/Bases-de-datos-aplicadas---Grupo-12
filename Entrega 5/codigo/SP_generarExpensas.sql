@@ -2,7 +2,7 @@ CREATE PROCEDURE sp_generarExpensas(@nombre_consorcio NVARCHAR(50), @anio INT, @
 BEGIN
 	SET NOCOUNT ON;
 
-	DECLARE @id_consorcio INT = (SELECT id_consorcio FROM consorcio WHERE razon_social = @nombre_consorcio);
+	DECLARE @id_consorcio INT = (SELECT id FROM consorcio WHERE razon_social = @nombre_consorcio);
 	IF @id_consorcio IS NULL
 	BEGIN
 		RAISERROR('Ese consorcio no existe', 16, 1);
@@ -66,13 +66,13 @@ BEGIN
 						   		detalle_expensa de
 						   JOIN
 						   		proveedor prov
-						   		ON prov.id_proveedor = de.id_proveedor
+						   		ON prov.id = de.id_proveedor
 						   WHERE 
 						   		de.id_consorcio = @id_consorcio AND 
 						   		de.fecha_factura BETWEEN @fecha_ini AND @fecha_fin)
 	UPDATE e SET
-		e.vencimiento1 = DATEADD(day, @dias_venc1, @fecha),
-		e.vencimiento2 = DATEADD(day, @dias_venc2, @fecha),  
+		e.vence1 = DATEADD(day, @dias_venc1, @fecha),
+		e.vence2 = DATEADD(day, @dias_venc2, @fecha),  
 		e.monto_ord = gp.ordinarias,
 		e.monto_ext = gp.extraordinarias
 	FROM 
@@ -93,3 +93,5 @@ BEGIN
 	END;
 END; 
 GO
+
+-- AGREGAR COLUMNAS A DETALLE_EXPENSA: id_consorcio, fecha_factura

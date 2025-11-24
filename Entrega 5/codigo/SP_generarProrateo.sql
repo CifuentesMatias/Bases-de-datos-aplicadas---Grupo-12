@@ -2,7 +2,7 @@ CREATE PROCEDURE sp_generarProrateo(@nombre_consorcio NVARCHAR(50), @anio INT, @
 BEGIN
 	SET NOCOUNT ON;
 
-	DECLARE @id_consorcio INT = (SELECT id_consorcio FROM consorcio WHERE razon_social = @nombre_consorcio);
+	DECLARE @id_consorcio INT = (SELECT id FROM consorcio WHERE razon_social = @nombre_consorcio);
 	IF @id_consorcio IS NULL
 	BEGIN
 		RAISERROR('Ese consorcio no existe', 16, 1);
@@ -21,7 +21,7 @@ BEGIN
 
 
 	DECLARE @quintoDiaHabil DATE = dbo.fn_5TODIAHABIL(@fecha);
-	DECLARE @vencimiento2 DATE = (SELECT vencimiento2 FROM expensa WHERE id_consorcio = @id_consorcio AND anio = @anio AND mes = @mes);
+	DECLARE @vencimiento2 DATE = (SELECT vence2 FROM expensa WHERE id_consorcio = @id_consorcio AND anio = @anio AND mes = @mes);
 	IF @debug = 0 AND (@vencimiento2 IS NULL OR @fecha NOT BETWEEN @quintoDiaHabil AND @vencimiento2)
 	BEGIN
 		RAISERROR('algo anda mal con las fechas', 16, 2);
@@ -31,10 +31,10 @@ BEGIN
 
 	WITH
 		consorcio_uf AS (SELECT 
-							id_uf,
-							coef
+							id,
+							porcentaje
 						 FROM 
-						 	unidad_funcional
+						 	UF
 						 WHERE 
 						 	id_consorcio = @id_consorcio),
 
@@ -46,14 +46,14 @@ BEGIN
 								id_consorcio = @id_consorcio AND
 								anio = @anio AND mes = @mes)
 
-	INSERT INTO prorateo(id_consorcio, anio, mes, id_uf, monto_ord, monto_ext)
+	INSERT INTO Estado_de_cuenta(id_consorcio, anio, mes, id_uf, gasto_ord, gasto_ext)
 	SELECT
 		@id_consorcio,
 		@anio,
 		@mes,
-		cuf.id_uf,
-		e.monto_ord * (cuf.coef/100.00) AS ordinarias,
-		e.monto_ext * (cuf.coef/100.00) AS extraordinarias
+		cuf.id,
+		e.monto_ord * (cuf.porcentaje/100.00) AS ordinarias,
+		e.monto_ext * (cuf.porcentaje/100.00) AS extraordinarias
 	FROM
 		consorcio_uf cuf
 	CROSS JOIN 
@@ -63,9 +63,11 @@ BEGIN
 	IF @debug = 1
 	BEGIN
 		SELECT *
-		FROM prorateo
+		FROM Estado_de_cuenta
 		WHERE id_consorcio = @id_consorcio  
 		AND	anio = @anio AND mes = @mes;
 	END;
 END;
 GO
+
+-- AGREGAR COLUMNAS EN EXPENSA: monto_ord, monto_ext

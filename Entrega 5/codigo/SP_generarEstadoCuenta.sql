@@ -2,7 +2,7 @@ CREATE PROCEDURE sp_generarEstadoCuenta(@nombre_consorcio NVARCHAR(50), @anio IN
 BEGIN
 	SET NOCOUNT ON;
 
-	DECLARE @id_consorcio INT = (SELECT id_consorcio FROM consorcio WHERE razon_social = @nombre_consorcio);
+	DECLARE @id_consorcio INT = (SELECT id FROM consorcio WHERE razon_social = @nombre_consorcio);
 	IF @id_consorcio IS NULL
 	BEGIN
 		RAISERROR('Ese consorcio no existe', 16, 1);
@@ -27,7 +27,7 @@ BEGIN
 	    SET @anio_del_mes_anterior = @anio_del_mes_anterior - 1;
 	END;
 
-	DECLARE @vencimiento2 DATE = (SELECT vencimiento2 FROM expensa WHERE id_consorcio = @id_consorcio AND anio = @anio AND mes = @mes);
+	DECLARE @vencimiento2 DATE = (SELECT vence2 FROM expensa WHERE id_consorcio = @id_consorcio AND anio = @anio AND mes = @mes);
 
 	-- usamos el mes pasado
 	IF @debug = 0 AND (@vencimiento2 IS NULL OR @fecha < @vencimiento2)
@@ -49,24 +49,24 @@ BEGIN
 
 	WITH
 		Uf_porConsorcio AS (SELECT
-								id_uf,
-								coef,
+								id,
+								porcentaje,
 								(CASE piso WHEN 0 THEN 'PB' ELSE CAST(piso AS VARCHAR(2)) END) + '-' + depto AS depto
 							FROM
-								unidad_funcional
+								UF
 							WHERE
 								id_consorcio = @id_consorcio),
 
 		-- si el prorateo anterior no existe tener valores de backup
 		prorateo_anterior AS (SELECT
-								uf.id_uf, 
+								uf.id, 
 							  	COALESCE(p.saldo_final, 0) AS saldo_anterior
 							  FROM
-							  	unidad_funcional uf
+							  	UF uf
 							  LEFT JOIN
-							  	prorateo p
+							  	Estado_de_cuenta p
 							  	ON p.id_consorcio = uf.id_consorcio
-							  	AND p.id_uf = uf.id_uf
+							  	AND p.id_uf = uf.id
 							  	AND p.anio = @anio_del_mes_anterior
 							  	AND p.mes = @mes_anterior
 							  WHERE
@@ -75,27 +75,27 @@ BEGIN
 		@nombre_consorcio as [Consorcio],
 		@anio as [Anio],
 		@mes as [Mes],
-		uc.id_uf as [Uf], 
-		uc.coef as [%],
+		uc.id as [Uf], 
+		uc.porcentaje as [%],
 		uc.depto as [Piso-Depto],
 		ur.propietario as [Propietario],
 
 		pa.saldo_anterior as [Saldo anterior],
-		pr.pagos_recibidos as [Pagos recibidos],
+		pr.pagos_registrados as [Pagos recibidos],
 		CASE 
-			WHEN GREATEST(pa.saldo_anterior - pr.pagos_recibidos, 0) > 0 
-			THEN CAST((pa.saldo_anterior - pr.pagos_recibidos) AS VARCHAR(20))
+			WHEN GREATEST(pa.saldo_anterior - pr.pagos_registrados, 0) > 0 
+			THEN CAST((pa.saldo_anterior - pr.pagos_registrados) AS VARCHAR(20))
 			ELSE '-'
 		END as [Deuda],
 		CASE 
-			WHEN LEAST(pa.saldo_anterior - pr.pagos_recibidos, 0) < 0 
-			THEN CAST(ABS(pa.saldo_anterior - pr.pagos_recibidos) AS VARCHAR(20))
+			WHEN LEAST(pa.saldo_anterior - pr.pagos_registrados, 0) < 0 
+			THEN CAST(ABS(pa.saldo_anterior - pr.pagos_registrados) AS VARCHAR(20))
 			ELSE '-'
 		END as [Saldo a favor],
-		pr.saldo_final - pr.monto_ord - pr.monto_ext - pa.saldo_anterior + pr.pagos_recibidos as [Intereses por mora], -- se puede inferir
-		pr.monto_ord as [Expensas ordinarias],
-		pr.monto_ext as [Expensas extraordinarias],
-		pr.monto_ord + pr.monto_ext as [Total a pagar],
+		pr.saldo_final - pr.gasto_ord - pr.gasto_ext - pa.saldo_anterior + pr.pagos_registrados as [Intereses por mora], -- se puede inferir
+		pr.gasto_ord as [Expensas ordinarias],
+		pr.gasto_ext as [Expensas extraordinarias],
+		pr.gasto_ord + pr.gasto_ext as [Total a pagar],
 		pr.saldo_final as [Saldo final],
 
 		CASE 
@@ -109,13 +109,13 @@ BEGIN
 			ELSE 'copia_impresa' 
 		END as [Forma envio inquilino] 
 	FROM 
-		prorateo pr
+		Estado_de_cuenta pr
 	JOIN
 		prorateo_anterior pa
-		ON pa.id_uf = pr.id_uf
+		ON pa.id = pr.id_uf
 	JOIN
 		Uf_porConsorcio uc
-		ON uc.id_uf = pr.id_uf
+		ON uc.id = pr.id_uf
 	JOIN
 		fn_ultimoResidentes(@id_consorcio, @fecha) ur
 		ON ur.id_uf = pr.id_uf

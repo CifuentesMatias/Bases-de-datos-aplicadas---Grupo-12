@@ -2,7 +2,7 @@ CREATE PROCEDURE sp_generarEstadoFinanciero(@nombre_consorcio NVARCHAR(50), @ani
 BEGIN
 	SET NOCOUNT ON;
 
-	DECLARE @id_consorcio INT = (SELECT id_consorcio FROM consorcio WHERE razon_social = @nombre_consorcio);
+	DECLARE @id_consorcio INT = (SELECT id FROM consorcio WHERE razon_social = @nombre_consorcio);
 	IF @id_consorcio IS NULL
 	BEGIN
 		RAISERROR('Ese consorcio no existe', 16, 1);
@@ -27,7 +27,7 @@ BEGIN
 	    SET @anio_del_mes_anterior = @anio_del_mes_anterior - 1;
 	END;
 
-	DECLARE @vencimiento2 DATE = (SELECT vencimiento2 FROM expensa WHERE id_consorcio = @id_consorcio AND anio = @anio AND mes = @mes);
+	DECLARE @vencimiento2 DATE = (SELECT vence2 FROM expensa WHERE id_consorcio = @id_consorcio AND anio = @anio AND mes = @mes);
 
 	-- usamos el mes pasado
 	IF @debug = 0 AND (@vencimiento2 IS NULL OR @fecha < @vencimiento2)
@@ -58,12 +58,12 @@ BEGIN
 								id_consorcio = @id_consorcio AND
 								anio = @anio AND mes = @mes),
 		caja_periodo AS (SELECT
-							pagos_entermino,
-							pagos_adeudados,
-							pagos_adelantados,
+							ingreso_termino,
+							ingreso_adeudado,
+							ingreso_adelantado,
 							saldo_final
 						  FROM 
-							caja
+							Estado_financiero
 						  WHERE
 							id_consorcio = @id_consorcio AND
 							anio = @anio AND mes = @mes),
@@ -71,7 +71,7 @@ BEGIN
 		caja_anterior AS (SELECT
 							COALESCE(MAX(saldo_final), 0) AS saldo_anterior
 						  FROM 
-						  	caja
+						  	Estado_financiero
 						  WHERE
                     		id_consorcio = @id_consorcio AND
                     		anio = @anio_del_mes_anterior AND mes = @mes_anterior)
@@ -80,9 +80,9 @@ BEGIN
 		@anio as [Anio],
 		@mes as [Mes],
 		ca.saldo_anterior as [Saldo anterior],
-		cp.pagos_entermino as [Pagos expensas en-termino],
-		cp.pagos_adeudados as [Pagos expensas adeudadas],
-		cp.pagos_adelantados as [Pagos expensas adelantadas],
+		cp.ingreso_termino as [Pagos expensas en-termino],
+		cp.ingreso_adeudado as [Pagos expensas adeudadas],
+		cp.ingreso_adelantado as [Pagos expensas adelantadas],
 		ep.monto_ext + ep.monto_ord as [Gastos mes actual],
 		CASE 
 			WHEN cp.saldo_final > 0 THEN CAST(ABS(cp.saldo_final) AS VARCHAR(20))
@@ -97,3 +97,5 @@ BEGIN
 		caja_anterior ca;
 END; 
 GO
+
+-- AGREGAR A LA TABLA ESTADO_FINANCIERO LA COLUMNA: saldo_final
