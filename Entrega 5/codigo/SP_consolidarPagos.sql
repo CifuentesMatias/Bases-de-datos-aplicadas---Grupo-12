@@ -9,7 +9,7 @@ BEGIN
 		RETURN;
 	END;
 
-	-- deberiamos estar en el dia del 5to dia habil obviamente del mes que sige
+	-- deberiamos estar en la fecha de cierre contable
 	DECLARE @fecha DATE;
 	IF @anio IS NULL OR @mes IS NULL OR @anio < 2020 OR @mes NOT BETWEEN 1 AND 12
 	BEGIN
@@ -17,20 +17,14 @@ BEGIN
 		SET @anio = YEAR(@fecha);
 		SET @mes = MONTH(@fecha);
 	END;
-	ELSE SET @fecha = dbo.fn_5TODIAHABIL(DATEADD(month, 1, DATEFROMPARTS(@anio, @mes, 1)));
+	IF @debug = 1 SET @fecha = DATEADD(day, 20, dbo.fn_5TODIAHABIL(DATEFROMPARTS(@anio, @mes, 1)));
+	SET @fecha = DATEFROMPARTS(@anio, @mes, 1);
 
-	IF @debug = 0 AND @fecha <> dbo.fn_5TODIAHABIL(@fecha)
-	BEGIN
-		RAISERROR('la fecha no coincide con el 5to dia habil', 16, 3);
-		RETURN;
-	END;
-
-
-
+	DECLARE @5todihabil DATE = dbo.fn_5TODIAHABIL(DATEFROMPARTS(@anio, @mes, 1));
 	DECLARE @vencimiento1 DATE, @vencimiento2 DATE;
 	SELECT 
-		@vencimiento1 = vence1,
-		@vencimiento2 = vence2
+		@vencimiento1 = vencimiento1,
+		@vencimiento2 = vencimiento2
 	FROM 
 		expensa 
 	WHERE 
@@ -39,7 +33,13 @@ BEGIN
 
 	IF @vencimiento2 IS NULL
 	BEGIN
-		RAISERROR('no existe vencimiento... abortando', 16, 4);
+		RAISERROR('no existe vencimiento... abortando', 16, 2);
+		RETURN;
+	END;
+
+	IF @debug = 0 AND @fecha <> @vencimiento2
+	BEGIN
+		RAISERROR('la fecha no coincide con el dia de cierre', 16, 3);
 		RETURN;
 	END;
 
@@ -52,21 +52,25 @@ BEGIN
 	    SET @anio_del_mes_anterior = @anio_del_mes_anterior - 1;
 	END;
 
-	DECLARE @5todihabil_anterior DATE = dbo.fn_5TODIAHABIL(DATEFROMPARTS(@anio_del_mes_anterior, @mes_anterior, 1));
 	DECLARE @vencimiento2_anterior DATE = (SELECT vence2 FROM expensa
 										   WHERE id_consorcio = @id_consorcio AND
 	  									   anio = @anio_del_mes_anterior AND mes = @mes_anterior);
 	IF @vencimiento2_anterior IS NULL
-	SET @vencimiento2_anterior = DATEFROMPARTS(@anio_del_mes_anterior, @mes_anterior, 20);
+	SET @vencimiento2_anterior = DATEADD(day, 20, dbo.fn_5TODIAHABIL(DATEFROMPARTS(@anio_del_mes_anterior, @mes_anterior, 1)));
 
 
 	IF EXISTS (SELECT 1 FROM pago WHERE (id_consorcio IS NULL OR id_uf IS NULL) AND
 										(fecha_pago BETWEEN @vencimiento2_anterior AND @vencimiento2))
 	BEGIN
-		RAISERROR('error.. existen pagos que no estan asociados!', 16, 5);
+		RAISERROR('error.. existen pagos que no estan asociados!', 16, 4);
 		RETURN;
 	END;
 
+	IF @debug = 1
+	BEGIN
+		PRINT 'vencimiento2_anterior: ' + CAST(@vencimiento2_anterior AS VARCHAR(20)) + ' --> vencimiento2: ' + CAST(@vencimiento2 AS VARCHAR(20));
+		PRINT '5todihabil: ' + CAST(@5todihabil AS VARCHAR(20)) + ' --> vencimiento1: ' + CAST(@vencimiento1 AS VARCHAR(20));
+	END;
 
 
 	-- tabla temporal con los resultados de los CTEs
@@ -97,46 +101,70 @@ BEGIN
 				    		fecha_pago < @vencimiento2),
 
 		-- PAGOS HASTA 5to dia habil
+		periodo_anterior AS (SELECT 
+								id,
+								SUM(pagos) AS pagos
+							 FROM
+							 	pagos_periodo
+							 WHERE
+							 	fecha_pago >= @vencimiento2_anterior AND
+				    			fecha_pago < @5todihabil
+				    		 GROUP BY --puede haber mas de un pago
+								id),
 		pagos_anteriores AS (SELECT 
 						        uf.id,
-						        SUM(COALESCE(pp.pagos, 0)) AS pagos_5todia
+						        COALESCE(pa.pagos, 0) AS pagos_5todia
 						     FROM
 						     	UF uf
 						     LEFT JOIN
-						    	pagos_periodo pp
-						    	ON pp.id_uf = uf.id
-						     	AND pp.fecha_pago >= @vencimiento2_anterior 
-						    	AND pp.fecha_pago <= @5todihabil_anterior
-						     GROUP BY --puede haber mas de un pago
-						    	uf.id),
+						    	periodo_anterior pa
+						    	ON pa.id = uf.id
+							 WHERE
+							    uf.id_consorcio = @id_consorcio),
 
 		-- PAGOS HASTA 1er VENC
+		periodo_venc1 AS (SELECT 
+							id,
+							SUM(pagos) AS pagos
+						  FROM
+						 	pagos_periodo
+						  WHERE
+						 	fecha_pago >= @5todihabil AND
+				    		fecha_pago <= @vencimiento1
+				    	  GROUP BY --puede haber mas de un pago
+							id),
 		pagos_venc1 AS (SELECT 
 				        	uf.id,
-				        	SUM(COALESCE(pp.pagos, 0)) AS pagos_entermino
+				        	COALESCE(pv1.pagos, 0) AS pagos_entermino
 				    	FROM
 					     	UF uf
 					    LEFT JOIN
-					    	pagos_periodo pp
-					    	ON pp.id_uf = uf.id
-					    	AND pp.fecha_pago > @5todihabil_anterior 
-					    	AND pp.fecha_pago <= @vencimiento1
-					    GROUP BY --puede haber mas de un pago
-						    uf.id),
+					    	periodo_venc1 pv1
+					    	ON pv1.id = uf.id
+					    WHERE
+							uf.id_consorcio = @id_consorcio),
 
 		-- PAGOS HASTA 2do VENC
+		periodo_venc2 AS (SELECT 
+							id,
+							SUM(pagos) AS pagos
+						  FROM
+						 	pagos_periodo
+						  WHERE
+						 	fecha_pago > @vencimiento1 AND
+				    		fecha_pago < @vencimiento2
+				    	  GROUP BY --puede haber mas de un pago
+							id),
 		pagos_venc2 AS (SELECT 
 				        	uf.id,
-				        	SUM(COALESCE(pp.pagos, 0)) AS pagos_entre_vtos
+				        	COALESCE(pv2.pagos, 0) AS pagos_entre_vtos
 				    	FROM
 					     	UF uf
 					    LEFT JOIN
-					    	pagos_periodo pp
-					    	ON pp.id_uf = uf.id
-					    	AND pp.fecha_pago > @vencimiento1
-					    	AND pp.fecha_pago < @vencimiento2
-					    GROUP BY --puede haber mas de un pago
-						    uf.id),
+					    	periodo_venc2 pv2
+					    	ON pv2.id = uf.id
+						WHERE
+							uf.id_consorcio = @id_consorcio),
 
 
 		-- PERIODO ANTERIOR (para el caso de la primera vez, es seguro que no exista prorateo anterior)
