@@ -27,7 +27,8 @@ BEGIN
 		SET @anio = YEAR(@fecha);
 		SET @mes = MONTH(@fecha);
 	END;
-	ELSE SET @fecha = dbo.fn_5TODIAHABIL(DATEADD(month, 1, DATEFROMPARTS(@anio, @mes, 1)));
+	IF @debug = 1 SET @fecha = dbo.fn_5TODIAHABIL(DATEFROMPARTS(@anio, @mes, 1));
+	SET @fecha = DATEFROMPARTS(@anio, @mes, 1);
 
 
 	DECLARE @quintoDiaHabil DATE = dbo.fn_5TODIAHABIL(@fecha);
