@@ -83,4 +83,4 @@ end
 go
 
 exec SP_ImportarPagosConsorcios
-@RutaArchivo = 'C:\Users\botta\Documents\GitHub\BaseDatosAplicadaGrupo12\Bases-de-datos-aplicadas---Grupo-12\Entrega 5\Archivos_para_importar\pagos_consorcios.csv';
+@RutaArchivo = 'C:\Temp\Consorcios\pagos_consorcios.csv';

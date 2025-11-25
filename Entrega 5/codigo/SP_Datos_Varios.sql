@@ -12,7 +12,7 @@ IF OBJECT_ID('SP_DatosVarios') IS NOT NULL
 GO
 
 CREATE PROCEDURE SP_DatosVarios
-    @RutaExcel NVARCHAR(500) = 'C:\Users\botta\Documents\GitHub\BaseDatosAplicadaGrupo12\Bases-de-datos-aplicadas---Grupo-12\Entrega 5\Archivos_para_importar\datos varios.xlsx'
+    @RutaExcel NVARCHAR(500) = 'C:\Temp\Consorcios\datos varios.xlsx'
 AS
 BEGIN
     SET NOCOUNT ON;

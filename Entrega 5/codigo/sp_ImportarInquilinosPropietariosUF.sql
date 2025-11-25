@@ -58,6 +58,8 @@ begin
             WHERE pu.cvu_cbu = TRIM(t.cvu_cbu) AND pu.id_consorcio = c.id AND pu.id_uf = u.id
         )
 
+        update Persona_UF set fecha = getdate();
+
         DROP TABLE #tmpInquilinoUF;
     end try
     begin catch
@@ -71,8 +73,9 @@ end
 go
 
 EXEC sp_ImportarInquilinosPropietariosUF 
-    @RutaArchivo = 'C:\Users\botta\Documents\GitHub\BaseDatosAplicadaGrupo12\Bases-de-datos-aplicadas---Grupo-12\Entrega 5\Archivos_para_importar\Inquilino-propietarios-UF.csv';
+    @RutaArchivo = 'C:\Temp\Consorcios\Inquilino-propietarios-UF.csv';
 go
 
 
 Select * from Persona_UF
+

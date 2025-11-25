@@ -63,3 +63,4 @@ WHERE
 END;
 GO
 
+EXEC sp_asociarPagos 1;

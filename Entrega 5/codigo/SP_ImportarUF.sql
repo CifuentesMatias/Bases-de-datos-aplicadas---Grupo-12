@@ -112,7 +112,7 @@ END
 GO
 
 EXEC SP_ImportarUFDesdeArchivo 
-    @RutaArchivo = 'C:\Users\botta\Documents\GitHub\BaseDatosAplicadaGrupo12\Bases-de-datos-aplicadas---Grupo-12\Entrega 5\Archivos_para_importar\UF por consorcio.txt';
+    @RutaArchivo = 'C:\Temp\Consorcios\UF por consorcio.txt';
 
 SELECT * FROM UF;
 SELECT * FROM Adicionales;

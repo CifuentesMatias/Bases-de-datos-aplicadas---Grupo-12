@@ -6,7 +6,7 @@ use Com2900G12
 go
 
 CREATE OR ALTER PROCEDURE SP_ImportarInquilinosDesdeArchivo
-    @RutaArchivo NVARCHAR(500) = 'C:\Users\botta\Documents\GitHub\BaseDatosAplicadaGrupo12\Bases-de-datos-aplicadas---Grupo-12\Entrega 5\Archivos_para_importar\Inquilino-propietarios-datos.csv'
+    @RutaArchivo NVARCHAR(500) = 'C:\Temp\Consorcios\Inquilino-propietarios-datos.csv'
 AS
 BEGIN
     BEGIN TRY

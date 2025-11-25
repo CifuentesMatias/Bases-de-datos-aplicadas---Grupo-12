@@ -138,5 +138,5 @@ BEGIN
 END; 
 GO
 
-EXEC sp_generarEstadoCuenta @nombre_consorcio = 'Azcuenaga', @anio = 2024, @mes = 4, @debug = 1;
+EXEC sp_generarEstadoCuenta @nombre_consorcio = 'Azcuenaga', @anio = 2025, @mes = 5, @debug = 1;
 

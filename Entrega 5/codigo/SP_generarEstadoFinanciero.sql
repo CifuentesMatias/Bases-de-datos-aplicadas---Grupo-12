@@ -102,5 +102,5 @@ GO
 EXEC sp_generarEstadoFinanciero
 @nombre_consorcio = 'Azcuenaga',
     @anio = 2025,
-    @mes = 6,
+    @mes = 5,
     @debug = 1;

@@ -270,7 +270,7 @@ DECLARE @jsonData NVARCHAR(MAX);
 
 SELECT @jsonData = BulkColumn
 
-FROM OPENROWSET(BULK 'C:\Users\botta\Documents\GitHub\BaseDatosAplicadaGrupo12\Bases-de-datos-aplicadas---Grupo-12\Entrega 5\Archivos_para_importar\Servicios.Servicios.json', SINGLE_CLOB) AS j;
+FROM OPENROWSET(BULK 'C:\Temp\Consorcios\Servicios.Servicios.json', SINGLE_CLOB) AS j;
 
 
 EXEC SP_ImportarServicios 

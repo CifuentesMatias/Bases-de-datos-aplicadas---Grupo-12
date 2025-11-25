@@ -102,7 +102,7 @@ BEGIN
 
 		-- PAGOS HASTA 5to dia habil
 		periodo_anterior AS (SELECT 
-								id,
+								id_uf,
 								SUM(pagos) AS pagos
 							 FROM
 							 	pagos_periodo
@@ -110,7 +110,7 @@ BEGIN
 							 	fecha_pago >= @vencimiento2_anterior AND
 				    			fecha_pago < @5todihabil
 				    		 GROUP BY --puede haber mas de un pago
-								id),
+								id_uf),
 		pagos_anteriores AS (SELECT 
 						        uf.id,
 						        COALESCE(pa.pagos, 0) AS pagos_5todia
@@ -118,13 +118,13 @@ BEGIN
 						     	UF uf
 						     LEFT JOIN
 						    	periodo_anterior pa
-						    	ON pa.id = uf.id
+						    	ON pa.id_uf = uf.id
 							 WHERE
 							    uf.id_consorcio = @id_consorcio),
 
 		-- PAGOS HASTA 1er VENC
 		periodo_venc1 AS (SELECT 
-							id,
+							id_uf,
 							SUM(pagos) AS pagos
 						  FROM
 						 	pagos_periodo
@@ -132,7 +132,7 @@ BEGIN
 						 	fecha_pago >= @5todihabil AND
 				    		fecha_pago <= @vencimiento1
 				    	  GROUP BY --puede haber mas de un pago
-							id),
+							id_uf),
 		pagos_venc1 AS (SELECT 
 				        	uf.id,
 				        	COALESCE(pv1.pagos, 0) AS pagos_entermino
@@ -140,13 +140,13 @@ BEGIN
 					     	UF uf
 					    LEFT JOIN
 					    	periodo_venc1 pv1
-					    	ON pv1.id = uf.id
+					    	ON pv1.id_uf = uf.id
 					    WHERE
 							uf.id_consorcio = @id_consorcio),
 
 		-- PAGOS HASTA 2do VENC
 		periodo_venc2 AS (SELECT 
-							id,
+							id_uf,
 							SUM(pagos) AS pagos
 						  FROM
 						 	pagos_periodo
@@ -154,7 +154,7 @@ BEGIN
 						 	fecha_pago > @vencimiento1 AND
 				    		fecha_pago < @vencimiento2
 				    	  GROUP BY --puede haber mas de un pago
-							id),
+							id_uf),
 		pagos_venc2 AS (SELECT 
 				        	uf.id,
 				        	COALESCE(pv2.pagos, 0) AS pagos_entre_vtos
@@ -162,7 +162,7 @@ BEGIN
 					     	UF uf
 					    LEFT JOIN
 					    	periodo_venc2 pv2
-					    	ON pv2.id = uf.id
+					    	ON pv2.id_uf = uf.id
 						WHERE
 							uf.id_consorcio = @id_consorcio),
 
@@ -418,7 +418,7 @@ GO
 EXEC sp_consolidarPagos 
 @nombre_consorcio = 'Azcuenaga',
     @anio = 2025,
-    @mes = 4,
+    @mes = 5,
     @coef_vto1 = 2,  -- 2% de interés
     @coef_vto2 = 5,  -- 5% de interés
     @debug = 1;
