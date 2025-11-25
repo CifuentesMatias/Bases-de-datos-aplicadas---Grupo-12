@@ -67,7 +67,7 @@ GO
 
 CREATE OR ALTER PROCEDURE SP_ImportarServicios
     @json NVARCHAR(MAX),               
-    @anio INT = 2024
+    @anio INT = 2025
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -273,10 +273,9 @@ SELECT @jsonData = BulkColumn
 FROM OPENROWSET(BULK 'C:\Users\botta\Documents\GitHub\BaseDatosAplicadaGrupo12\Bases-de-datos-aplicadas---Grupo-12\Entrega 5\Archivos_para_importar\Servicios.Servicios.json', SINGLE_CLOB) AS j;
 
 
-
 EXEC SP_ImportarServicios 
     @json = @jsonData,
-    @anio = 2024;
+    @anio = 2025;
 GO
 
 

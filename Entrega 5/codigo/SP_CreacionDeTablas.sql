@@ -133,6 +133,7 @@ BEGIN
             gasto_cochera DECIMAL(12,2) DEFAULT 0,
             gasto_baulera DECIMAL(12,2) DEFAULT 0,
             saldo_anterior DECIMAL(12,2) DEFAULT 0,
+            saldo_final DECIMAL(12,2) DEFAULT 0,
             anio INT NOT NULL,
             mes TINYINT NOT NULL,
             fecha_creacion DATE DEFAULT GETDATE(),
@@ -196,6 +197,7 @@ BEGIN
             id_expensa INT NOT NULL,
             importe DECIMAL(12,2) NULL,
             id_proveedor INT NULL,
+            fecha_factura date NULL,
             descripcion NVARCHAR(100) NULL,
             CONSTRAINT FK_DET_EXP_EXPENSA FOREIGN KEY (id_expensa) REFERENCES Expensa(id),
             CONSTRAINT FK_DET_EXP_PROVEEDOR FOREIGN KEY (id_proveedor) REFERENCES Proveedor(id)
@@ -217,6 +219,8 @@ BEGIN
             cbu_cvu CHAR(22) NULL,
             monto DECIMAL(12,2) NULL,
             id_exp INT NULL,
+            id_uf int NULL,
+            id_consorcio int null,
             CONSTRAINT FK_PAGO_EXP FOREIGN KEY (id_exp) REFERENCES Expensa(id),
             CONSTRAINT PAGO_CHK_CBU CHECK 
             (cbu_cvu LIKE '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]')            

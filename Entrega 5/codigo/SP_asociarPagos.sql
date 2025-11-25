@@ -22,27 +22,37 @@ BEGIN
 						   			persona_uf
 						   	   WHERE
 						   			fecha <= GETDATE()),
-		uf_persona AS (SELECT
-							pc.id_consorcio,
-							pc.id_uf,
-							pers.id,
-							pc.es_propietario,
-							pers.cvu_cbu
-					   FROM
-					   	 	persona pers
-					   JOIN 
-					   		personas_consorcio pc
-					   		ON pc.cvu_cbu = pers.cvu_cbu) -- CAMBIÓ
-	UPDATE p SET
-		p.id_consorcio = ufp.id_consorcio,
-		p.id_uf = ufp.id_uf
+		uf_persona AS (
+	SELECT
+		pc.id_consorcio,
+		pc.id_uf,
+		pers.id,
+		-- CORRECCIÓN: Se utiliza id_tipo_relacion de Persona.
+		-- Lógica Inversa: Si id_tipo_relacion es TRUE (1), entonces es_propietario = 0 (FALSE), y viceversa.
+		CASE 
+			WHEN pers.id_tipo_relacion = 1 THEN 0 -- Inverso: Si es 1 (TRUE), es_propietario = 0 (FALSE)
+			ELSE 1                                 -- Inverso: Si es 0 (FALSE), es_propietario = 1 (TRUE)
+		END AS es_propietario,
+		pers.cvu_cbu
 	FROM
-		pago p
+		persona pers
 	JOIN
-		uf_persona ufp
-		ON ufp.cvu_cbu = p.cbu_cvu -- CAMBIÓ
-	WHERE
-		p.id_consorcio IS NULL;
+		personas_consorcio pc
+		ON pc.cvu_cbu = pers.cvu_cbu
+)
+-- El resto del UPDATE permanece igual
+UPDATE p SET
+	p.id_consorcio = ufp.id_consorcio,
+	p.id_uf = ufp.id_uf
+FROM
+	pago p
+JOIN
+	uf_persona ufp
+	ON ufp.cvu_cbu = p.cbu_cvu
+WHERE
+	p.id_consorcio IS NULL;
+
+
 
 	--despues
 	IF @debug = 1
@@ -53,4 +63,3 @@ BEGIN
 END;
 GO
 
--- AGREGAR A LA TABLA PAGO: id_consorcio, id_uf

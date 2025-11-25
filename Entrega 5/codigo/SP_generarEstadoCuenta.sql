@@ -1,3 +1,13 @@
+if db_id('Com2900G12') is null
+	create database Com2900G12 collate Modern_Spanish_CI_AS;
+go
+use Com2900G12
+go
+
+IF OBJECT_ID('sp_generarEstadoCuenta', 'P') IS NOT NULL
+    DROP PROCEDURE sp_generarEstadoCuenta;
+GO
+
 CREATE PROCEDURE sp_generarEstadoCuenta(@nombre_consorcio NVARCHAR(50), @anio INT, @mes INT, @debug BIT = 0) AS
 BEGIN
 	SET NOCOUNT ON;
@@ -123,6 +133,9 @@ BEGIN
 		pr.id_consorcio = @id_consorcio AND
 		pr.anio = @anio AND pr.mes = @mes
 	ORDER BY
-		uc.id_uf ASC;
+		uc.id ASC;
 END; 
 GO
+
+EXEC sp_generarEstadoCuenta @nombre_consorcio = 'Azcuenaga', @anio = 2024, @mes = 5, @debug = 1;
+

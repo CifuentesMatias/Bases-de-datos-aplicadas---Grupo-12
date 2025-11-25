@@ -1,3 +1,13 @@
+if db_id('Com2900G12') is null
+	create database Com2900G12 collate Modern_Spanish_CI_AS;
+go
+use Com2900G12
+go
+
+IF OBJECT_ID('sp_generarProrateo', 'P') IS NOT NULL
+    DROP PROCEDURE sp_generarProrateo;
+GO
+
 CREATE PROCEDURE sp_generarProrateo(@nombre_consorcio NVARCHAR(50), @anio INT, @mes INT, @debug BIT = 0) AS
 BEGIN
 	SET NOCOUNT ON;
@@ -70,4 +80,8 @@ BEGIN
 END;
 GO
 
--- AGREGAR COLUMNAS EN EXPENSA: monto_ord, monto_ext
+
+EXEC sp_generarProrateo @nombre_consorcio = 'Azcuenaga', @anio = 2024, @mes = 5, @debug = 1;
+
+
+

@@ -1,4 +1,4 @@
-CREATE PROCEDURE sp_consolidarPagos(@nombre_consorcio NVARCHAR(50), @anio INT, @mes INT, @coef_vto1 INT = 2, @coef_vto2 INT = 5, @debug BIT = 0) AS
+CREATE OR ALTER PROCEDURE sp_consolidarPagos(@nombre_consorcio NVARCHAR(50), @anio INT, @mes INT, @coef_vto1 INT = 2, @coef_vto2 INT = 5, @debug BIT = 0) AS
 BEGIN
 	SET NOCOUNT ON;
 
@@ -157,14 +157,14 @@ BEGIN
 
 		-- CALCULO DE SALDO AL 5to dia
 		saldo_al_5todia AS (SELECT 
-						        p5d.id_uf,
+						        p5d.id,
 						        p5d.pagos_5todia AS saldo_pagado,           
 						        pa.saldo_anterior - p5d.pagos_5todia AS saldo_restante
 							FROM 
 						    	pagos_anteriores p5d 
 						    JOIN 
 						    	prorateo_anterior pa
-						    	ON pa.id_uf = p5d.id_uf),
+						    	ON pa.id = p5d.id),
 
 		-- PERIODO ACTUAL (todas las uf existen)
 		prorateo_periodo AS (SELECT 
@@ -178,21 +178,21 @@ BEGIN
 
 		-- CALCULO DE SALDO AL 1ER VTO
 		saldo_al_venc1 AS (SELECT 
-						        s5d.id_uf,
+						        s5d.id,
 						        s5d.saldo_restante AS saldo_pagado,           
 						        s5d.saldo_restante + pp.gastos_mes - pv1.pagos_entermino AS saldo_restante
 							FROM 
 						    	saldo_al_5todia s5d 
 						    JOIN 
 						    	prorateo_periodo pp
-						    	ON pp.id_uf = s5d.id_uf
+						    	ON pp.id_uf = s5d.id
 						    JOIN
 						    	pagos_venc1 pv1
-						    	ON pv1.id_uf = s5d.id_uf),
+						    	ON pv1.id = s5d.id),
 
 		-- APLICO INTERES SI SIGUE DEBIENDO TRAS 1 VTO
 		intereses1 AS (SELECT 
-				        	id_uf,
+				        	id,
 				        	CASE 
 				        		WHEN saldo_restante > 0 
 				        		THEN saldo_restante * (@coef_vto1/100.00)
@@ -204,18 +204,18 @@ BEGIN
 
 		-- SALDO AL 2DO VTO
 		saldo_al_venc2 AS (SELECT 
-						      i.id_uf,
+						      i.id,
 						      pv2.pagos_entre_vtos AS saldo_pagado,
 						      i.saldo_restante + i.interes - pv2.pagos_entre_vtos AS saldo_restante
 						   FROM 
 						      intereses1 i
 						   JOIN 
 						      pagos_venc2 pv2 
-						   	  ON pv2.id_uf = i.id_uf),
+						   	  ON pv2.id = i.id),
 		
 		-- APLICO INTERES SI SIGUE DEBIENDO TRAS 2 VTO
 		intereses2 AS (SELECT 
-					  	  id_uf,
+					  	  id,
 					      CASE 
 					        WHEN saldo_restante > 0 
 					        THEN saldo_restante * (@coef_vto2/100.00) 
@@ -227,7 +227,7 @@ BEGIN
 
 	INSERT INTO @tabla_intermedia
 	SELECT
-	    pat.id_uf,
+	    pat.id,
 	    pat.pagos_5todia,
 	    pv1.pagos_entermino,
 	    pv2.pagos_entre_vtos,
@@ -240,22 +240,22 @@ BEGIN
 		pagos_anteriores pat
 	JOIN 
 		pagos_venc1 pv1 
-		ON pv1.id_uf = pat.id_uf
+		ON pv1.id = pat.id
 	JOIN 
 		pagos_venc2 pv2
-		ON pv2.id_uf = pat.id_uf
+		ON pv2.id = pat.id
 	JOIN 
 		saldo_al_venc1 sv1 
-		ON sv1.id_uf = pat.id_uf
+		ON sv1.id = pat.id
 	JOIN 
 		saldo_al_5todia s5d 
-		ON s5d.id_uf = pat.id_uf
+		ON s5d.id = pat.id
 	JOIN 
 		saldo_al_venc2 sv2 
-		ON sv2.id_uf = pat.id_uf
+		ON sv2.id = pat.id
 	JOIN 
 		intereses2 i2 
-		ON i2.id_uf = pat.id_uf;
+		ON i2.id = pat.id;
 
 
 
@@ -332,7 +332,7 @@ BEGIN
 							   		@tabla_intermedia ti
 							   JOIN 
 							    	prorateo_anterior pra
-							        ON pra.id_uf = ti.id_uf),
+							        ON pra.id = ti.id_uf),
 
 		calculo_final AS (SELECT
 					        SUM(pago_a_deuda_anterior + pago_a_deuda_venc1 + pago_a_deuda_entermino) AS pagos_adeudados,
@@ -357,7 +357,7 @@ BEGIN
 						  		id_consorcio = @id_consorcio AND
 								anio = @anio AND mes = @mes)
 
-	INSERT INTO Estado_financiero(id_consorcio, anio, mes, pagos_adeudados, pagos_entermino, pagos_adelantados, saldo_final)
+	INSERT INTO Estado_financiero(id_consorcio, anio, mes, ingreso_adeudado, ingreso_termino, ingreso_adelantado, saldo_final)
 	SELECT
 	    @id_consorcio,
 	    @anio,
@@ -390,3 +390,12 @@ BEGIN
 	END;
 END; 
 GO
+
+EXEC sp_consolidarPagos 
+@nombre_consorcio = 'Azcuenaga',
+    @anio = 2024,
+    @mes = 5,
+    @coef_vto1 = 2.00,  -- 2% de interés
+    @coef_vto2 = 5.00,  -- 5% de interés
+    @debug = 1;
+

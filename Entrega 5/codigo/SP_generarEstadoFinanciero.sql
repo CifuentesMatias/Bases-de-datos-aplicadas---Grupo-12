@@ -98,4 +98,8 @@ BEGIN
 END; 
 GO
 
--- AGREGAR A LA TABLA ESTADO_FINANCIERO LA COLUMNA: saldo_final
+EXEC sp_generarEstadoFinanciero
+@nombre_consorcio = 'Azcuenaga',
+    @anio = 2024,
+    @mes = 5,
+    @debug = 1;

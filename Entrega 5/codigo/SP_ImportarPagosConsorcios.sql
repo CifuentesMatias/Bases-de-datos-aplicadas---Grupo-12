@@ -41,17 +41,21 @@ begin
 
         EXEC sp_executesql @SQL;
         
-        INSERT INTO Pago(id_pago, fecha_pago, cbu_cvu, monto)
-        SELECT 
-            CAST(TRIM(T.id) AS INT),
-            CONVERT(DATE, TRIM(T.fecha_pago), 103),
-            TRIM(T.cbu_cvu),
-            CAST(M.MontoLimpio AS DECIMAL(10,3))
-        FROM #tmpPagoRaw T
+        INSERT INTO Pago(id_consorcio, id_uf, id_pago, fecha_pago, cbu_cvu, monto) --agrege esto
+        SELECT
+            puf.id_consorcio,     -- esta bien que sea NULL si no matchea, despues se asocia en un SP
+            puf.id_uf,            -- esta bien que sea NULL si no matchea, despues se asocia en un SP
+            CAST(TRIM(T.id) AS INT),
+            CONVERT(DATE, TRIM(T.fecha_pago), 103),
+            TRIM(T.cbu_cvu),
+            CAST(M.MontoLimpio AS DECIMAL(10,3))
+        FROM #tmpPagoRaw T
+        LEFT JOIN Persona pers ON pers.cvu_cbu = t.cbu_cvu --enlazamos el pago con el cbu y nos quedamos con la persona
+        LEFT JOIN Persona_UF puf ON puf.cvu_cbu = pers.cvu_cbu --luego enlazamos si existe el id_persona para saber el consorcio 
         CROSS APPLY (
             SELECT TRIM(REPLACE(REPLACE(REPLACE(T.monto, '$', ''),'.', ''), ',', '.')) AS MontoLimpio
         ) AS M
-        WHERE 
+        WHERE 
             TRIM(T.id) <> ''
             AND ISNUMERIC(M.MontoLimpio) = 1 
             AND M.MontoLimpio <> ''
@@ -59,7 +63,7 @@ begin
 
         COMMIT TRANSACTION;
         
-        SET IDENTITY_INSERT Pago OFF;
+        SET IDENTITY_INSERT Pago OFF;
         
         SELECT * FROM Pago;
         
