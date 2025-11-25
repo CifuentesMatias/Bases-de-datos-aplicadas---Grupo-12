@@ -40,7 +40,7 @@ BEGIN
 
 	WITH
 		-- busco las uf que SOLO deban
-		uf_morosa AS (SELECT
+		uf_morosa AS (SELECT TOP 1
 					   		id_uf,
 					   		anio,
 							mes,
@@ -50,7 +50,10 @@ BEGIN
 					   WHERE 
 					 		id_consorcio = @id_consorcio AND
 							DATEFROMPARTS(anio, mes, 1) <= @fechaFin AND
-							saldo_final > 0),
+							saldo_final > 0 
+					   ORDER BY
+					   		anio DESC,
+					   		mes DESC),
 
 		-- me piden 3 personas morosas, entonces puede pasar que la misma persona deba dos departamentos
 		morosos AS (SELECT
