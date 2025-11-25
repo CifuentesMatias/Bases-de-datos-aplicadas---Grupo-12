@@ -81,7 +81,6 @@ END;
 GO
 
 
-EXEC sp_generarProrateo @nombre_consorcio = 'Azcuenaga', @anio = 2024, @mes = 5, @debug = 1;
-
-
-
+EXEC sp_generarProrateo @nombre_consorcio = 'Azcuenaga', @anio = 2025, @mes = 4, @debug = 1;
+EXEC sp_generarProrateo @nombre_consorcio = 'Azcuenaga', @anio = 2025, @mes = 5, @debug = 1;
+EXEC sp_generarProrateo @nombre_consorcio = 'Azcuenaga', @anio = 2025, @mes = 6, @debug = 1;

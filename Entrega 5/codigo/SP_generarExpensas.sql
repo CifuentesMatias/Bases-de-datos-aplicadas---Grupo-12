@@ -101,4 +101,6 @@ BEGIN
 END; 
 GO
 
---EXEC sp_generarExpensas @nombre_consorcio = 'Azcuenaga', @anio = 2024, @mes = 5, @dias_venc1 = 10, @dias_venc2 = 20, @debug = 1;--para probar
+EXEC sp_generarExpensas @nombre_consorcio = 'Azcuenaga', @anio = 2025, @mes = 4, @dias_venc1 = 10, @dias_venc2 = 20, @debug = 1;--para probar
+EXEC sp_generarExpensas @nombre_consorcio = 'Azcuenaga', @anio = 2025, @mes = 5, @dias_venc1 = 10, @dias_venc2 = 20, @debug = 1;--para probar
+EXEC sp_generarExpensas @nombre_consorcio = 'Azcuenaga', @anio = 2025, @mes = 6, @dias_venc1 = 10, @dias_venc2 = 20, @debug = 1;--para probar

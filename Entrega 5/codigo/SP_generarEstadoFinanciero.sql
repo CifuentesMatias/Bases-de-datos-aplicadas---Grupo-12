@@ -1,4 +1,4 @@
-CREATE PROCEDURE sp_generarEstadoFinanciero(@nombre_consorcio NVARCHAR(50), @anio INT, @mes INT, @debug BIT = 0) AS
+CREATE OR ALTER PROCEDURE sp_generarEstadoFinanciero(@nombre_consorcio NVARCHAR(50), @anio INT, @mes INT, @debug BIT = 0) AS
 BEGIN
 	SET NOCOUNT ON;
 
@@ -100,6 +100,6 @@ GO
 
 EXEC sp_generarEstadoFinanciero
 @nombre_consorcio = 'Azcuenaga',
-    @anio = 2024,
-    @mes = 5,
+    @anio = 2025,
+    @mes = 6,
     @debug = 1;

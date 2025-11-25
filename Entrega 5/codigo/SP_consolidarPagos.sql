@@ -82,7 +82,6 @@ BEGIN
 	    saldo_al_venc2 DECIMAL(10,2),
 	    saldo_final DECIMAL(20,2)
 	);
-
 	-- Calcular todo una sola vez y guardar en la tabla intermedia
 	WITH
 		--PAGOS PERIODO
@@ -375,10 +374,7 @@ BEGIN
 
 	IF @debug = 1
 	BEGIN
-		SELECT
-			* 
-		FROM
-			@tabla_intermedia;
+		SELECT * FROM @tabla_intermedia;
 
 	    SELECT
 	    	* 
@@ -393,9 +389,11 @@ GO
 
 EXEC sp_consolidarPagos 
 @nombre_consorcio = 'Azcuenaga',
-    @anio = 2024,
-    @mes = 5,
-    @coef_vto1 = 2.00,  -- 2% de interés
-    @coef_vto2 = 5.00,  -- 5% de interés
+    @anio = 2025,
+    @mes = 4,
+    @coef_vto1 = 2,  -- 2% de interés
+    @coef_vto2 = 5,  -- 5% de interés
     @debug = 1;
 
+	SELECT sum(monto) FROM PAGO WHERE fecha_pago between '2025-04-01' and '2025-05-28'
+	SELECT min(fecha_pago)from pago
