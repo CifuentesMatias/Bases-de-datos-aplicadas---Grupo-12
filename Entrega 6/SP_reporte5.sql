@@ -8,14 +8,14 @@
 	altos del oeste  2020-1-5	50mil   Pepe jodido  	20454564  	11-23244    
 	altos del oeste  2020-1-5	47mil   Elber galarga  	20454564  				elbergalarga@yahoo.com    
 */
-CREATE PROCEDURE sp_reporte5(@nombre_consorcio NVARCHAR(50), @fechaInicio DATE = '2020-1-1', @fechaFin DATE = NULL) AS
+CREATE OR ALTER PROCEDURE sp_reporte5(@nombre_consorcio NVARCHAR(50), @fechaInicio DATE = '2020-1-1', @fechaFin DATE = NULL) AS
 BEGIN
 	SET NOCOUNT ON;
 
 	IF @fechaFin IS NULL
 		SET @fechaFin = GETDATE();
 
-	DECLARE @id_consorcio INT = (SELECT TOP 1 id_consorcio FROM consorcio WHERE razon_social = @nombre_consorcio);
+	DECLARE @id_consorcio INT = (SELECT TOP 1 id FROM consorcio WHERE razon_social = @nombre_consorcio);
 
 	IF @id_consorcio IS NULL
 	BEGIN
@@ -46,7 +46,7 @@ BEGIN
 							mes,
 					 		saldo_final
 					   FROM 
-					 		prorateo
+					 		Estado_de_cuenta
 					   WHERE 
 					 		id_consorcio = @id_consorcio AND
 							DATEFROMPARTS(anio, mes, 1) <= @fechaFin AND
@@ -114,3 +114,4 @@ BEGIN
 		ROOT('Reporte5');
 END; 
 GO
+EXEC sp_reporte5 @nombre_consorcio = 'Azcuenaga', @fechaFin = '2025-05-20'
