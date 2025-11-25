@@ -49,7 +49,7 @@ BEGIN
 					 		prorateo
 					   WHERE 
 					 		id_consorcio = @id_consorcio AND
-							anio <= YEAR('2025-1-1') AND
+							DATEFROMPARTS(anio, mes, 1) <= @fechaFin AND
 							saldo_final > 0),
 
 		-- me piden 3 personas morosas, entonces puede pasar que la misma persona deba dos departamentos
