@@ -23,8 +23,8 @@ BEGIN
 	DECLARE @5todihabil DATE = dbo.fn_5TODIAHABIL(DATEFROMPARTS(@anio, @mes, 1));
 	DECLARE @vencimiento1 DATE, @vencimiento2 DATE;
 	SELECT 
-		@vencimiento1 = vencimiento1,
-		@vencimiento2 = vencimiento2
+		@vencimiento1 = vence1,
+		@vencimiento2 = vence2
 	FROM 
 		expensa 
 	WHERE 
