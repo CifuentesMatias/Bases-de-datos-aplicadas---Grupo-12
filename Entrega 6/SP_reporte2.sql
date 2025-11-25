@@ -7,14 +7,14 @@
 						2020	1    2			20mil  0
 						2020	1    3			20mil  0
 */
-CREATE PROCEDURE sp_reporte2(@nombre_consorcio NVARCHAR(50), @fechaInicio DATE = '2020-1-1', @fechaFin DATE = NULL) AS
+CREATE OR ALTER PROCEDURE sp_reporte2(@nombre_consorcio NVARCHAR(50), @fechaInicio DATE = '2020-1-1', @fechaFin DATE = NULL) AS
 BEGIN
 	SET NOCOUNT ON;
 
 	IF @fechaFin IS NULL
 		SET @fechaFin = GETDATE();
 
-	DECLARE @id_consorcio INT = (SELECT TOP 1 id_consorcio FROM consorcio WHERE razon_social = @nombre_consorcio);
+	DECLARE @id_consorcio INT = (SELECT TOP 1 id FROM consorcio WHERE razon_social = @nombre_consorcio);
 
 	IF @id_consorcio IS NULL
 	BEGIN
@@ -30,7 +30,7 @@ BEGIN
 
 	WITH
 		cte AS (SELECT *
-				FROM prorateo
+				FROM Estado_de_cuenta
 				WHERE id_consorcio = @id_consorcio AND
 					  DATEFROMPARTS(anio, mes, 1) BETWEEN @fechaInicio AND @fechaFin)
 	SELECT
@@ -51,10 +51,13 @@ BEGIN
 	    ISNULL([12],0) AS Diciembre
 	FROM 
 		cte
-		PIVOT (SUM(pagos_recibidos) FOR mes
+		PIVOT (SUM(pagos_registrados) FOR mes
 		   	   IN ([1],[2],[3],[4],[5],[6],[7],[8],[9],[10],[11],[12])) AS piv
 	ORDER BY 
 		anio, 
 		id_uf;
 END;
 GO
+
+
+EXEC sp_reporte2 @nombre_consorcio = 'Azcuenaga', @fechaFIn = '2025-06-28';

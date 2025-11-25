@@ -4,11 +4,11 @@ BEGIN
 	DECLARE @mes INT = MONTH(@fechaFin);
 	DECLARE @anio_aux INT = YEAR(@fechaInicio);
 	DECLARE @mes_aux INT = MONTH(@fechaInicio);
-	DECLARE @periodo_final DATE = (SELECT vencimiento2 FROM expensa 
+	DECLARE @periodo_final DATE = (SELECT vence2 FROM expensa 
 								   WHERE id_consorcio = @id_consorcio
 								   AND anio = @anio 
 								   AND mes = @mes);
-	DECLARE @periodo_inicial DATE = (SELECT vencimiento2 FROM expensa 
+	DECLARE @periodo_inicial DATE = (SELECT vence2 FROM expensa 
 								   	 WHERE id_consorcio = @id_consorcio
 								  	 AND anio = @anio_aux 
 								   	 AND mes = @mes_aux);
@@ -23,7 +23,7 @@ BEGIN
 		END;
 
 
-		SET @periodo_final = (SELECT vencimiento2 FROM expensa 
+		SET @periodo_final = (SELECT vence2 FROM expensa 
 							  WHERE id_consorcio = @id_consorcio
 							  AND anio = @anio 
 							  AND mes = @mes);
@@ -45,7 +45,7 @@ BEGIN
 		END;
 	
 
-		SET @periodo_inicial = (SELECT vencimiento2 FROM expensa 
+		SET @periodo_inicial = (SELECT vence2 FROM expensa 
 							    WHERE id_consorcio = @id_consorcio
 							  	AND anio = @anio_aux 
 							  	AND mes = @mes_aux);

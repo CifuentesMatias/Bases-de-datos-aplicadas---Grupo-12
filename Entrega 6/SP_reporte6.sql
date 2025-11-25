@@ -12,14 +12,14 @@
 	altos del oeste   P1-E 	 	 2020-12-5   0
 	altos del oeste   P1-E 	 	 2020-12-7   0
 */
-CREATE PROCEDURE sp_reporte6(@nombre_consorcio NVARCHAR(50), @fechaInicio DATE = '2020-1-1', @fechaFin DATE = NULL) AS
+CREATE OR ALTER PROCEDURE sp_reporte6(@nombre_consorcio NVARCHAR(50), @fechaInicio DATE = '2020-1-1', @fechaFin DATE = NULL) AS
 BEGIN
 	SET NOCOUNT ON;
 
 	IF @fechaFin IS NULL
 		SET @fechaFin = GETDATE();
 
-	DECLARE @id_consorcio INT = (SELECT TOP 1 id_consorcio FROM consorcio WHERE razon_social = @nombre_consorcio);
+	DECLARE @id_consorcio INT = (SELECT TOP 1 id FROM consorcio WHERE razon_social = @nombre_consorcio);
 
 	IF @id_consorcio IS NULL
 	BEGIN
@@ -46,10 +46,10 @@ BEGIN
 						  	id_consorcio = @id_consorcio AND
 						  	fecha_pago BETWEEN @fechaInicio AND @fechaFin),
 		Uf_porConsorcio AS (SELECT
-								id_uf,
+								id,
 								((CASE piso WHEN 0 THEN 'PB' ELSE CAST(piso as VARCHAR(2)) END) + '-' + depto) AS dpto
 						    FROM 
-						    	unidad_funcional
+						    	UF
 							WHERE 
 								id_consorcio = @id_consorcio)
 	SELECT 
@@ -58,7 +58,7 @@ BEGIN
 		pp.fecha_pago AS fPago,
 		COALESCE(
 			CAST(DATEDIFF(DAY, 
-					 	  LAG(pp.fecha_pago) OVER (PARTITION BY ufc.id_uf ORDER BY pp.fecha_pago),
+					 	  LAG(pp.fecha_pago) OVER (PARTITION BY ufc.id ORDER BY pp.fecha_pago),
 					 	  pp.fecha_pago) AS VARCHAR(10)),
 		    '-'
 		) AS diff_dias
@@ -66,9 +66,12 @@ BEGIN
 		pagos_periodo pp
 	JOIN 
 		Uf_porConsorcio ufc 
-		ON ufc.id_uf = pp.id_uf
+		ON ufc.id = pp.id_uf
 	ORDER BY 
-		ufc.id_uf,
+		ufc.id,
 		pp.fecha_pago;
 END;
 GO
+
+
+EXEC sp_reporte6 @nombre_consorcio = 'Azcuenaga', @fechaFin = '2025-05-20'

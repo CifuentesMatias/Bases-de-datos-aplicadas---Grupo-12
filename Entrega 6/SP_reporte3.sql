@@ -9,13 +9,13 @@
 	............
 	altos del oeste  2020	1   	20      	1000
 */
-CREATE PROCEDURE sp_reporte3(@nombre_consorcio NVARCHAR(50), @fechaInicio DATE = '2020-1-1', @fechaFin DATE = NULL) AS
+CREATE OR ALTER PROCEDURE sp_reporte3(@nombre_consorcio NVARCHAR(50), @fechaInicio DATE = '2020-1-1', @fechaFin DATE = NULL) AS
 BEGIN
 	SET NOCOUNT ON;
 
 	IF @fechaFin IS NULL SET @fechaFin = GETDATE();
 
-	DECLARE @id_consorcio INT = (SELECT TOP 1 id_consorcio FROM consorcio WHERE razon_social = @nombre_consorcio);
+	DECLARE @id_consorcio INT = (SELECT TOP 1 id FROM consorcio WHERE razon_social = @nombre_consorcio);
 
 	IF @id_consorcio IS NULL
 	BEGIN
@@ -33,13 +33,16 @@ BEGIN
 	WITH
 		personas_consorcio AS (SELECT
 								  puf.id_uf,
-								  pers.cbu_cvu,
-								  puf.es_propietario
+								  pers.cvu_cbu,
+								  CASE 
+										WHEN pers.id_tipo_relacion = 1 THEN 0 
+										ELSE 1                                 
+								  END AS es_propietario
 							   FROM
 								  persona_uf puf
 							   LEFT JOIN
 							   	  persona pers
-							   	  ON pers.id_persona = puf.id_persona
+							   	  ON pers.cvu_cbu = puf.cvu_cbu
 							   WHERE
 							   	  puf.id_consorcio = @id_consorcio),
 		pagos_periodo AS (SELECT
@@ -51,7 +54,7 @@ BEGIN
 						  	pago p
 						  JOIN
 						    personas_consorcio pc
-						    ON pc.cbu_cvu = p.cbu_cvu
+						    ON pc.cvu_cbu = p.cbu_cvu
 						  WHERE 
 						  	p.id_consorcio = @id_consorcio AND
 						  	p.fecha_pago BETWEEN @fechaInicio AND @fechaFin)
@@ -70,3 +73,5 @@ BEGIN
 		mes;
 END; 
 GO
+
+EXEC sp_reporte3 @nombre_consorcio = 'Azcuenaga', @fechaFin = '2025-05-20'

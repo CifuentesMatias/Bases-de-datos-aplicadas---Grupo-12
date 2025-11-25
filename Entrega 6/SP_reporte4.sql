@@ -10,14 +10,21 @@
 	.............
 	altos del oeste 	2020	5 	 ingresos 	20mil
 */
-CREATE PROCEDURE sp_reporte4(@nombre_consorcio NVARCHAR(50), @fechaInicio DATE = '2020-1-1', @fechaFin DATE = NULL) AS
+
+EXEC sp_configure 'show advanced options', 1;
+RECONFIGURE;
+EXEC sp_configure 'Ole Automation Procedures', 1;
+RECONFIGURE;
+GO
+
+CREATE OR ALTER PROCEDURE sp_reporte4(@nombre_consorcio NVARCHAR(50), @fechaInicio DATE = '2020-1-1', @fechaFin DATE = NULL) AS
 BEGIN
 	SET NOCOUNT ON;
 
 	IF @fechaFin IS NULL
 		SET @fechaFin = GETDATE();
 
-	DECLARE @id_consorcio INT = (SELECT TOP 1 id_consorcio FROM consorcio WHERE razon_social = @nombre_consorcio);
+	DECLARE @id_consorcio INT = (SELECT TOP 1 id FROM consorcio WHERE razon_social = @nombre_consorcio);
 
 	IF @id_consorcio IS NULL
 	BEGIN
@@ -58,9 +65,9 @@ BEGIN
 		anio,
 		mes,
 		'Ingreso',
-		(pagos_entermino + pagos_adeudados + pagos_adelantados) AS monto_total
+		(ingreso_termino + ingreso_adeudado + ingreso_adelantado) AS monto_total
 	FROM
-		caja
+		Estado_financiero
 	WHERE
 		id_consorcio = @id_consorcio AND
 		DATEFROMPARTS(anio, mes, 1) BETWEEN @fechaInicio AND @fechaFin
@@ -103,3 +110,5 @@ BEGIN
 		ROOT('Reporte4');
 END; 
 GO
+
+EXEC sp_reporte4 @nombre_consorcio = 'Azcuenaga', @fechaFin = '2025-05-20'
