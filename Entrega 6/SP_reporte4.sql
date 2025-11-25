@@ -111,4 +111,4 @@ BEGIN
 END; 
 GO
 
-EXEC sp_reporte4 @nombre_consorcio = 'Azcuenaga', @fechaFin = '2025-05-20'
+EXEC sp_reporte4 @nombre_consorcio = 'Azcuenaga', @fechaFin = '2025-07-20'

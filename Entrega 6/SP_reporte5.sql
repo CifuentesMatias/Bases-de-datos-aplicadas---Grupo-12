@@ -114,4 +114,4 @@ BEGIN
 		ROOT('Reporte5');
 END; 
 GO
-EXEC sp_reporte5 @nombre_consorcio = 'Azcuenaga', @fechaFin = '2025-05-20'
+EXEC sp_reporte5 @nombre_consorcio = 'Azcuenaga', @fechaFin = '2025-07-20'
